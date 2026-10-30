@@ -1,7 +1,7 @@
-// VLTouch: Compat stub; S5 makes real what the runtime needs.
+// VLTouch: opaque pad handle; OnScreenControls only stores and forwards the
+// pointer (S1's sink owns what it points to).
 #import <Foundation/Foundation.h>
 
-// Opaque handle: OnScreenControls only stores and forwards the pointer.
 @interface VoidController : NSObject
 
 @end

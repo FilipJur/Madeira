@@ -163,6 +163,8 @@ extension ControllerCollectionNavigationDelegate {
 extension UIAlertController: ControllerUINavigationDelegate {
 }
 
+// VLTouch: no-op — controller navigation is dropped (D4); the API stays so the
+// profile/widget pickers compile. Delegates are tracked but never driven.
 final class ControllerNavigator: NSObject {
 
     static var radialMenuButtonPosition: ControllerElementPosition {

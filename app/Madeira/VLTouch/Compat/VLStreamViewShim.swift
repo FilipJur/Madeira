@@ -1,4 +1,5 @@
-// VLTouch: Compat stub; S5 makes real what the runtime needs.
+// VLTouch: minimal stand-in for VoidLink's stream controller; the host (S2)
+// owns the real flags. Touch stays enabled (false/false = feature off).
 import UIKit
 
 // Widget code reads the stream controller's touch flags off
