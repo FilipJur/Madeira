@@ -60,10 +60,15 @@ int LiSendMouseMoveEvent(short deltaX, short deltaY);
 int LiSendMousePositionEvent(short x, short y, short referenceWidth, short referenceHeight);
 int LiSendMouseMoveAsMousePositionEvent(short deltaX, short deltaY, short referenceWidth, short referenceHeight);
 int LiSendScrollEvent(signed char scrollClicks);
+
 int LiSendHighResScrollEvent(short scrollAmount);
 int LiSendHighResHScrollEvent(short scrollAmount);
 int LiSendControllerTouchEvent(uint8_t controllerNumber, uint8_t eventType, uint32_t pointerId, float x, float y, float pressure);
 int LiSendControllerMotionEvent(uint8_t controllerNumber, uint8_t motionType, float x, float y, float z);
+
+// VLTouch: S1 owned. Tracks what VLLiShim.m holds down so VLSink.releaseAll
+// can release every key and mouse button (TOUCH-PORT.md Sink contract).
+void VLLiReleaseAllHeldInputs(void);
 
 #ifdef __cplusplus
 }
