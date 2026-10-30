@@ -555,8 +555,8 @@ OVERLAY = {
                 "default": "madeira",
                 "choices": [("madeira", "Madeira (default)"), ("voidlink", "VoidLink widgets")],
                 "note": "Madeira (default): the built-in touch gamepad. VoidLink widgets: the ported VoidLink "
-                        "on-screen widget system (profiles, macros, layout editor). Nothing reads it yet (S2 hooks "
-                        "the overlay).",
+                        "on-screen widget system (profiles, macros, layout editor) in library game sessions. "
+                        "Read at each session start; the game's own file wins (Game details can set it per game).",
                 "sources": ["app/Madeira/VLTouch/Host/VLTouchSwitch.swift"]},
     "env.MADEIRA_PROMOTE": {"title": "Hold the display at its maximum rate"},
     # madeira-bcd: GTA V Enhanced's Social Club (StikJITHelper.swift, process_ios.c, virtual_ios.c).
