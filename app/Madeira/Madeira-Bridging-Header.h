@@ -83,3 +83,16 @@ int madeira_d3d12_canary_run_log(const char *fixture_dir, const char *dylib_path
  * what was applied, for the [hwinput] log. */
 void madeira_phone_pointer_setup(void);
 const char *madeira_phone_pointer_status(void);
+// VLTouch: ObjC headers the ported Swift needs (registered in project.pbxproj, VLTouch group).
+#import "VLTouch/Model/OSCProfile.h"
+#import "VLTouch/Model/OnScreenButtonState.h"
+#import "VLTouch/Widgets/OnScreenControls.h"
+#import "VLTouch/Widgets/LayoutOnScreenControls.h"
+#import "VLTouch/Widgets/CustomTapGestureRecognizer.h"
+#import "VLTouch/Sink/ControllerSupport.h"
+#import "VLTouch/Sink/VLLiShim.h"
+#import "VLTouch/Compat/StreamConfiguration.h"
+#import "VLTouch/Compat/VoidController.h"
+#import "VLTouch/Support/LocalizationHelper.h"
+#import "VLTouch/Editor/WidgetPanelStackView.h"
+#import "VLTouch/Editor/ToolBarContainerView.h"

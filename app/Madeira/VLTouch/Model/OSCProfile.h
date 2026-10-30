@@ -1,0 +1,98 @@
+//
+//  OSCProfile.h
+//  Moonlight
+//
+//  Created by Long Le on 12/22/22.
+//  Copyright © 2022 Moonlight Game Streaming Project. All rights reserved.
+//
+//  Modified by True砖家 since 2024.6.24
+//  Copyright © 2024 True砖家 @ Bilibili. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "OnScreenButtonState.h"
+
+NS_ASSUME_NONNULL_BEGIN
+#define DEFAULT_TEMPLATE_NAME1 @"控件模板 / Widget templates"
+#define DEFAULT_TEMPLATE_NAME2 @"旧版控件 / Legacy widgets"
+
+typedef NS_ENUM(NSInteger, MapGyroTo) {
+    mapGyroToMouse,
+    mapGyroToControllerStick,
+    driftCorrection
+};
+
+typedef NS_ENUM(NSInteger, PencilAndHoverMode) {
+    hoverDisabled,
+    pencilOnly,
+    pencilToMouse,
+    pencilToTouch
+};
+
+
+/**
+ This object contains information pertaining to any of the user created, custom on screen controller layout configurations, or 'profiles.' The object contains a 'name' property for easy reference, as well as an 'isSelected' property which is used to determine whether this particular custom OSC layout should show on screen during game stream view. Only one 'OSCProfile' is set to 'isSelected' at any given time. The object also contains an array of 'OnScreenButtonStates' which provides information that allows us to move and hide/unhide each of the 19 on screen buttons. Note that the 'buttonStates' property should contain an NSMutableArray of ENCODED 'OnScreenButtonState' objects. This allows us to save the 'OSCProfile' object to NSUserDefaults.
+ Additionally the 'OSCProfile' object adopts encoding and decoding protocols so that we can encode the object before saving it to NSUserDefaults. By saving this object to NSUserDefaults we allow the user to save and load their custom on screen controller button layouts between app launches
+ */
+@interface OSCProfile : NSObject <NSCoding, NSSecureCoding, NSMutableCopying>
+
+@property NSString *name;
+@property NSMutableArray <NSData *> *buttonStatesEncoded;
+@property (nonatomic, assign) int16_t unfoldedExclusiveFolderSequence;
+@property NSSet<NSNumber *> *postExclusiveUnfoldedSequences;
+@property BOOL isSelected;
+@property (nonatomic, assign) bool useBuiltinGyro;
+@property (nonatomic, assign) bool swapYawAndRoll;
+@property (nonatomic, assign) MapGyroTo mapGyroTo;
+@property (nonatomic, assign) bool yawPitchToRightStick;
+@property (nonatomic, assign) bool rollToLeftStick;
+@property (nonatomic, assign) bool synthesizePhysicalStick;
+@property (nonatomic, assign) CGFloat gyroSensitivityYaw;
+@property (nonatomic, assign) CGFloat gyroSensitivityPitch;
+@property (nonatomic, assign) CGFloat gyroSensitivityRoll;
+@property (nonatomic, assign) CGFloat accelSensitivityX;
+@property (nonatomic, assign) CGFloat accelSensitivityY;
+@property (nonatomic, assign) CGFloat accelSensitivityZ;
+@property (nonatomic, assign) double gyroToStickMinOffset;
+@property (nonatomic, assign) double physicalLeftStickMinOffset;
+@property (nonatomic, assign) double physicalRightStickMinOffset;
+@property (nonatomic, assign) int controllerGyroSwitchMode;
+@property (nonatomic, assign) bool reverseGyroHoldButton;
+@property (nonatomic, assign) int controllerGyroSwitchHold;
+@property (nonatomic, assign) int controllerGyroSwitchToggle;
+@property (nonatomic, assign) int touchMode;
+@property (nonatomic, assign) CGFloat pointerVelocityModeDivider;
+@property (nonatomic, assign) CGFloat touchPointerVelocityFactor;
+@property (nonatomic, assign) CGPoint normalizedStreamViewOffset;
+@property (nonatomic, assign) CGFloat streamViewScale;
+@property (nonatomic, assign) CGFloat dualSenseTransient;
+
+@property (nonatomic, assign) bool gamepadOverlayEnabled;
+
+@property NSArray<NSNumber *> *pressureCurvePoints;
+// @property NSArray<NSNumber *> *initialTouchPressureCurvePoints;
+@property (nonatomic, assign) int phase1StrokeSampleIndexEnd;
+@property (nonatomic, assign) int phase2StrokeSampleIndexEnd;
+@property (nonatomic, assign) CGFloat strokeEqualizationStrength;
+@property (nonatomic, assign) bool pressureCurveEnabled;
+@property (nonatomic, assign) bool doubleTapShorcutEnabled;
+@property NSString *brushShortcut;
+@property NSString *eraserShortcut;
+@property (nonatomic, assign) bool squeezeShorcutEnabled;
+@property NSString *squeezeStartShortcut;
+@property NSString *squeezeEndShortcut;
+@property (nonatomic, assign) bool pencilPausesNativeTouch;
+@property (nonatomic, assign) bool disablePencilSlideGestures;
+@property (nonatomic, assign) PencilAndHoverMode pencilAndHoverMode;
+
+
+
+- (id) initWithName:(NSString*)name buttonStates:(NSMutableArray*)buttonStates isSelected:(BOOL)isSelected;
+
++ (BOOL) supportsSecureCoding;
+- (id) initWithCoder:(NSCoder*)decoder;
+- (void) encodeWithCoder:(NSCoder*)encoder;
+
+@end
+
+NS_ASSUME_NONNULL_END

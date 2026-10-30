@@ -1,0 +1,366 @@
+//
+//  LayoutOnScreenControls.m
+//  Moonlight
+//
+//  Created by Long Le on 9/26/22.
+//  Copyright © 2022 Moonlight Game Streaming Project. All rights reserved.
+//
+//  Modified by True砖家 since 2024.6.24
+//  Copyright © 2024 True砖家 @ Bilibili. All rights reserved.
+//
+
+#import "LayoutOnScreenControls.h"
+#import "OnScreenButtonState.h"
+#import "VoidLink-Swift.h"
+
+
+@interface LayoutOnScreenControls ()
+@end
+
+@implementation LayoutOnScreenControls {
+    
+    UIButton *trashCanButton;
+    UIView *horizontalGuideline;
+    UIView *verticalGuideline;
+}
+
+@synthesize layerBeingDragged;
+@synthesize _view;
+@synthesize layoutChanges;
+
+
+
+
+- (id) initWithView:(UIView*)view controllerSup:(ControllerSupport*)controllerSupport streamConfig:(StreamConfiguration*)streamConfig oscLevel:(int)oscLevel {
+    
+    _view = view;
+#if !TARGET_OS_TV
+    _view.multipleTouchEnabled = false;
+#endif
+    
+  
+    self = [super initWithView:view controllerSup:controllerSupport streamConfig:streamConfig];
+    self.isLayingOut = true; // make sure the super class have a flag to tell it's currently laying out the OSCs, intead play mode.
+    self._level = oscLevel;
+
+    layoutChanges = [[NSMutableArray alloc] init];  // will contain OSC button layout changes the user has made for this profile
+            
+    // [self drawButtons];
+    [self drawGuidelines];  // add the blue guidelines that appear when button is being tapped and dragged
+    
+    return self;
+}
+
+#pragma mark - Drawing
+
+/**
+ * This method overrides the superclass's drawButtons method. The purpose of this method is to create a dPad parent layer, and add the four dPad buttons to it so that the user can drag the entire dPad around, directional buttons and all, as one unit as is the expected behavior. Note that we do not want the four dPad buttons to be child layers of a CALayer parent layer on the game stream view since the touch logic implemented for the four dPad buttons on the game stream view is written assuming the dPad buttons are not children of another parent CALayer
+ */
+- (void) drawButtons:(OSCProfile* )profile {
+    // [super regenLayerPool];
+    [super setDPadCenter:profile];    // Set custom position for D-Pad here
+    [super setAnalogStickPositions:profile]; // Set custom position for analog sticks here
+    [super drawBumpers];
+    [super drawButtons:profile];
+    
+    /*
+     UIImage* downButtonImage = [UIImage imageNamed:@"DownButton"];
+     UIImage* rightButtonImage = [UIImage imageNamed:@"RightButton"];
+     UIImage* upButtonImage = [UIImage imageNamed:@"UpButton"];
+     UIImage* leftButtonImage = [UIImage imageNamed:@"LeftButton"];
+     */
+    
+    
+    //  create dPad background layer
+    if([self.OSCButtonLayerPool containsObject:self._upButton]){
+        [self.OSCButtonLayerPool addObject:self._dPadBackground];
+        self._dPadBackground.name = @"dPad";
+        self._dPadBackground.frame = CGRectMake(self.D_PAD_CENTER_X,
+                                                self.D_PAD_CENTER_Y,
+                                                self._leftButton.frame.size.width * 2 + BUTTON_DIST,
+                                                self._leftButton.frame.size.width * 2 + BUTTON_DIST);
+        self._dPadBackground.position = CGPointMake(self.D_PAD_CENTER_X, self.D_PAD_CENTER_Y);    // since dPadBackground's dimensions have change after settings its width and height you need to reset its position again here
+        [self.OSCButtonLayerPool addObject:self._dPadBackground];
+        [_view.layer addSublayer:self._dPadBackground];
+        
+        // add dPad buttons to parent layer
+        [self._dPadBackground addSublayer:self._downButton];
+        [self._dPadBackground addSublayer:self._rightButton];
+        [self._dPadBackground addSublayer:self._upButton];
+        [self._dPadBackground addSublayer:self._leftButton];
+    }
+    
+    for(CALayer* buttonLayer in self.OSCButtonLayerPool){
+        // NSLog(@"layer name %@", buttonLayer.name);
+    }
+    
+    [self resizeControllerLayerWith:self._dPadBackground and:_dPadSizeFactor];
+    
+    /*
+    // reposition each dPad button within their parent dPadBackground layer
+    self._downButton.frame = CGRectMake(self._dPadBackground.frame.size.width/3, self._dPadBackground.frame.size.height/2 + D_PAD_DIST, downButtonImage.size.width, downButtonImage.size.height);
+    self._rightButton.frame = CGRectMake(self._dPadBackground.frame.size.width/2 + D_PAD_DIST, self._dPadBackground.frame.size.height/3, rightButtonImage.size.width, rightButtonImage.size.height);
+    self._upButton.frame = CGRectMake(self._dPadBackground.frame.size.width/3, 0, upButtonImage.size.width, upButtonImage.size.height);
+    self._leftButton.frame = CGRectMake(0, self._dPadBackground.frame.size.height/3, leftButtonImage.size.width, leftButtonImage.size.height);*/
+}
+
+/**
+ * draws a horizontal and vertical line that is made visible and positioned over whichever button the user is dragging around the screen
+ */
+- (void) drawGuidelines {
+    horizontalGuideline = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self._view.frame.size.width * 2, 2)];
+    horizontalGuideline.backgroundColor = [UIColor blueColor];
+    horizontalGuideline.hidden = YES;
+    horizontalGuideline.layer.shadowColor = [UIColor blackColor].CGColor;
+    horizontalGuideline.layer.shadowOffset = CGSizeMake(0, 0);
+    horizontalGuideline.layer.shadowOpacity = 0.5;
+    horizontalGuideline.layer.shadowRadius = 2;
+    [self._view addSubview: horizontalGuideline];
+    
+    verticalGuideline = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 2, self._view.frame.size.height * 2)];
+    verticalGuideline.backgroundColor = [UIColor blueColor];
+    verticalGuideline.hidden = YES;
+    verticalGuideline.layer.shadowColor = [UIColor blackColor].CGColor;
+    verticalGuideline.layer.shadowOffset = CGSizeMake(0, 0);
+    verticalGuideline.layer.shadowOpacity = 0.5;
+    verticalGuideline.layer.shadowRadius = 2;
+    [self._view addSubview: verticalGuideline];
+}
+
+- (void)updateGuidelinesForOnScreenWidget:(OnScreenWidgetView* )widget{
+    /* have guidelines follow wherever the user is touching on the screen */
+    horizontalGuideline.hidden = verticalGuideline.hidden = NO;
+    horizontalGuideline.center = verticalGuideline.center = CGPointMake(CGRectGetMidX(widget.frame), CGRectGetMidY(widget.frame));
+    /*
+     Telegraph to the user whether the horizontal and/or vertical guidelines line up with one or more of the buttons on screen by doing the following:
+     -Change horizontal guideline color to yellow if its y-position is almost equal to that of one of the buttons on screen.
+     -Change vertical guideline color to yellow if its x-position is almost equal to that of one of the buttons on screen.
+     */
+    
+    horizontalGuideline.backgroundColor = [UIColor blueColor]; // change horizontal guideline back to blue if it doesn't line up with one of the on screen buttons
+    OnScreenWidgetView.isHorizontallyAligned = false;
+    for (CALayer *button in self.OSCButtonLayerPool) { // horizontal guideline position check
+        if ((layerBeingDragged != button) && !button.isHidden) {
+            if ((horizontalGuideline.center.y < button.position.y + 1) &&
+                (horizontalGuideline.center.y > button.position.y - 1)) {
+                horizontalGuideline.backgroundColor = [UIColor yellowColor];
+                OnScreenWidgetView.isHorizontallyAligned = true;
+                OnScreenWidgetView.alignedY = button.position.y;
+                break;
+            }
+        }
+    }
+    for(UIView* view in self.layoutToolVC.view.subviews){
+        if ([view isKindOfClass:[OnScreenWidgetView class]] && view != widget) {
+            OnScreenWidgetView* otherWidget = (OnScreenWidgetView *) view;
+            if(widget.isHidden) continue;
+            if(widget.isFolder && widget.bulkMoveEnabled && [widget.sequenceSet containsObject:@(otherWidget.sequence)]) break;
+            if((horizontalGuideline.center.y < view.center.y + 1) && (horizontalGuideline.center.y > view.center.y - 1)) {
+                horizontalGuideline.backgroundColor = [UIColor yellowColor];
+                OnScreenWidgetView.isHorizontallyAligned = true;
+                OnScreenWidgetView.alignedY = view.center.y;
+                break;
+            }
+        }
+    }
+
+    verticalGuideline.backgroundColor = [UIColor blueColor]; // change vertical guideline back to blue if it doesn't line up with one of the on screen buttons
+    OnScreenWidgetView.isVerticallyAligned = false;
+    for (CALayer *button in self.OSCButtonLayerPool) { // vertical guideline position check
+        if ((layerBeingDragged != button) && !button.isHidden) {
+            if ((verticalGuideline.center.x < button.position.x + 1) &&
+                (verticalGuideline.center.x > button.position.x - 1)) {
+                verticalGuideline.backgroundColor = [UIColor yellowColor];
+                OnScreenWidgetView.isVerticallyAligned = true;
+                OnScreenWidgetView.alignedX = button.position.x;
+                break;
+            }
+        }
+    }
+    for(UIView* view in self.layoutToolVC.view.subviews){
+        if ([view isKindOfClass:[OnScreenWidgetView class]] && view != widget) {
+            if(view.isHidden) continue;
+            if ((verticalGuideline.center.x < view.center.x + 1) && (verticalGuideline.center.x > view.center.x - 1)) {
+                verticalGuideline.backgroundColor = [UIColor yellowColor];
+                OnScreenWidgetView.isVerticallyAligned = true;
+                OnScreenWidgetView.alignedX = view.center.x;
+                break;
+            }
+        }
+    }
+}
+
+- (void) updateGuidelinesForLegacyOnScreenControls{
+    /* have guidelines follow wherever the user is touching on the screen */
+    horizontalGuideline.center = layerBeingDragged.position;
+    verticalGuideline.center = layerBeingDragged.position;
+    /*
+     Telegraph to the user whether the horizontal and/or vertical guidelines line up with one or more of the buttons on screen by doing the following:
+     -Change horizontal guideline color to yellow if its y-position is almost equal to that of one of the buttons on screen.
+     -Change vertical guideline color to yellow if its x-position is almost equal to that of one of the buttons on screen.
+     */
+    horizontalGuideline.backgroundColor = [UIColor blueColor]; // change horizontal guideline back to blue if it doesn't line up with one of the on screen buttons
+    for (CALayer *button in self.OSCButtonLayerPool) { // horizontal guideline position check
+        if ((layerBeingDragged != button) && !button.isHidden) {
+            if ((horizontalGuideline.center.y < button.position.y + 1) &&
+                (horizontalGuideline.center.y > button.position.y - 1)) {
+                horizontalGuideline.backgroundColor = [UIColor yellowColor];
+                break;
+            }
+        }
+    }
+    // alignment with onScreenWidgets
+    for(UIView* view in self.layoutToolVC.view.subviews){
+        if ([view isKindOfClass:[OnScreenWidgetView class]]) {
+            if ((horizontalGuideline.center.y < view.center.y + 1) && (horizontalGuideline.center.y > view.center.y - 1)) {
+                horizontalGuideline.backgroundColor = [UIColor yellowColor];
+                break;
+            }
+        }
+    }
+    verticalGuideline.backgroundColor = [UIColor blueColor]; // change vertical guideline back to blue if it doesn't line up with one of the on screen buttons
+    for (CALayer *button in self.OSCButtonLayerPool) { // vertical guideline position check
+        if ((layerBeingDragged != button) && !button.isHidden) {
+            if ((verticalGuideline.center.x < button.position.x + 1) &&
+                (verticalGuideline.center.x > button.position.x - 1)) {
+                verticalGuideline.backgroundColor = [UIColor yellowColor];
+                break;
+            }
+        }
+    }
+    // alignment with onScreenWidgets
+    for(UIView* view in self.layoutToolVC.view.subviews){
+        if ([view isKindOfClass:[OnScreenWidgetView class]]) {
+            if ((verticalGuideline.center.x < view.center.x + 1) && (verticalGuideline.center.x > view.center.x - 1)) {
+                verticalGuideline.backgroundColor = [UIColor yellowColor];
+                break;
+            }
+        }
+    }
+}
+
+
+#pragma mark - Queries
+
+/* used to determine whether user is dragging an OSC button (of type CALayer) over the trash can with the intent of hiding that button */
+- (BOOL) isLayer:(CALayer *)layer hoveringOverButton:(UIButton *)button {
+    CGRect buttonConvertedRect = [self._view convertRect:button.imageView.frame fromView:button.superview];
+    
+    if (CGRectIntersectsRect(layer.frame, buttonConvertedRect)) {
+        return YES;
+    }
+    else {
+        return NO;
+    }
+}
+
+/* returns reference to button layer object given the button's name*/
+- (CALayer*)controllerLayerFromName: (NSString*)name {
+    for (CALayer *buttonLayer in self.OSCButtonLayerPool) {
+        
+        if ([buttonLayer.name isEqualToString:name]) {
+            return buttonLayer;
+        }
+    }
+    return nil;
+}
+
+#pragma mark - Touch 
+
+- (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    /* Reset variables related to on screen controller button drag and drop routine. These variables should be reset in 'touchesCancelled' or 'touchesEnded' but these may not be called in unaccounted-for edge cases such as when the user opens various OS-level control center related views by dragging down from the top of the screen, or dragging up from the bottom of the screen. Since Apple likes to add new control centers and new ways of opening them (i.e. Dynamic Island on iPhone 14 Pro) it's best to reset these variables here when the user is beginning a new on screen controller button drag routine  */
+    
+    layerBeingDragged = nil;
+    horizontalGuideline.backgroundColor = [UIColor blueColor];
+    verticalGuideline.backgroundColor = [UIColor blueColor];
+    
+    for (UITouch* touch in touches) {   // Process touch 
+        
+        CGPoint touchLocation = [touch locationInView:_view];
+        touchLocation = [[touch view] convertPoint:touchLocation toView:nil];
+        CALayer *layer = [_view.layer hitTest:touchLocation];
+        
+        /* Don't let user drag and move anything other than on screen controller buttons, which are CALayer types. The reason is that 'LayoutOnScreenControls' should only be responsible for managing and letting users move on screen controller buttons. Since this class's view is currently set to be set equal to the 'LayoutOnScreenControlsViewController' view it belongs to, we need to make sure touches on the VC's objects don't propagate down to 'LayoutOnScreenControls'. Weird stuff can happen to the UI buttons that belong to that VC (trash can button, undo button, save button, etc), such as them being dragged around the screen with the user's touches */
+        for (UIView *subview in self._view.subviews) {
+            
+            if (CGRectContainsPoint(subview.frame, touchLocation)) {
+                if (![subview isKindOfClass:[CALayer class]]) {
+                    return;
+                }
+            }
+        }
+   
+        if (layer == self._upButton ||
+            layer == self._downButton ||
+            layer == self._leftButton ||
+            layer == self._rightButton) { // don't let user drag individual dPad buttons
+            layerBeingDragged = self._dPadBackground;
+        }
+        else if (layer == self._rightStick) {  // only let user drag right stick's background, not the inner analog stick itself
+            layerBeingDragged = self._rightStickBackground;
+        }
+        else if (layer == self._leftStick) {  // only let user drag left stick's background, not the inner analog stick itself
+            layerBeingDragged = self._leftStickBackground;
+        }
+        else if(layer == self._aButton ||
+                layer == self._bButton ||
+                layer == self._xButton ||
+                layer == self._yButton ||
+                layer == self._l1Button ||
+                layer == self._l2Button ||
+                layer == self._r1Button ||
+                layer == self._r2Button ||
+                layer == self._selectButton ||
+                layer == self._startButton){    // we must iterates all the controller button layers manually here, to prevent other widgets being dragged accidently
+            layerBeingDragged = layer;
+        }
+        
+        if(!layerBeingDragged) return;
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"LegacyOscCALayerSelectedNotification" object:layerBeingDragged]; // inform that a CALayer of onScreen controller has being selected
+        
+        /* save the name, position, and visibility of button being touched in array in case user wants to undo the change later */
+        OnScreenButtonState *onScreenButtonState = [[OnScreenButtonState alloc] initWithButtonName:layerBeingDragged.name buttonType:LegacyOnScreenControls andPosition:layerBeingDragged.position];
+        // add hidden attr here
+        onScreenButtonState.isHidden = layerBeingDragged.isHidden;
+        
+        [layoutChanges addObject:onScreenButtonState];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"OSCLayoutChanged" object:self]; // lets the view controller know whether to fade the undo button in or out depending on whether there are any further OSC layout changes the user is allowed to undo
+        
+        /* make guide lines visible and position them over the button the user is touching */
+        horizontalGuideline.hidden = NO;
+        verticalGuideline.hidden = NO;
+        [self updateGuidelinesForLegacyOnScreenControls];
+    }
+}
+
+- (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    UITouch *touch = [touches anyObject];
+    CGPoint touchLocation = [touch locationInView:_view];
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    layerBeingDragged.position = touchLocation; // move object to touch location
+    [self updateGuidelinesForLegacyOnScreenControls];
+    [CATransaction commit];
+}
+
+- (void) touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+    layerBeingDragged = nil;
+         
+    horizontalGuideline.hidden = YES;
+    verticalGuideline.hidden = YES;
+    horizontalGuideline.backgroundColor = [UIColor blueColor];
+    verticalGuideline.backgroundColor = [UIColor blueColor];
+}
+
+- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    layerBeingDragged = nil;
+    
+    horizontalGuideline.hidden = YES;
+    verticalGuideline.hidden = YES;
+    horizontalGuideline.backgroundColor = [UIColor blueColor];
+    verticalGuideline.backgroundColor = [UIColor blueColor];
+}
+
+
+@end

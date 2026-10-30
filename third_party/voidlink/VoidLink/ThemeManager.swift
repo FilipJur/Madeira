@@ -1,0 +1,461 @@
+//
+//  ThemeManager.swift
+//  VoidLink
+//
+//  Created by True砖家 on 2026/3/6.
+//  Copyright © 2026 True砖家 @ Bilibili. All rights reserved.
+//
+
+
+import UIKit
+
+@objcMembers
+class ThemeManager: NSObject {
+    
+    static let ThemeDidChangeNotification = "ThemeDidChangeNotification"
+    
+    private static var _privateUserInterfaceStyle: UIUserInterfaceStyle = .unspecified
+    private static var _userInterfaceStyle: UIUserInterfaceStyle = .unspecified
+
+    #if os(iOS) && compiler(>=6.4)
+    private static let hingeStatusObserver = NotificationCenter.default.addObserver(
+        forName: PublicUtils.hingeStatusDidChangeNotification,
+        object: nil,
+        queue: .main
+    ) { _ in
+        /* ThemeManager.systemUserInterfaceStyleDidChange(
+            PublicUtils.currentScreen.traitCollection.userInterfaceStyle
+        ) */
+    }
+    #endif
+
+    // Keep the user's System preference separate from the explicit style used
+    // to stabilize UIKit while a Duo scene moves between its displays.
+    @objc class func pinsSystemStyleForFoldable() -> Bool {
+        #if os(iOS) && compiler(>=6.4)
+        if #available(iOS 27.1, *) {
+            return PublicUtils.isFoldableRAMCached
+        }
+        #endif
+        return false
+    }
+
+    @available(iOS 13.0, tvOS 13.0, *)
+    private class func currentSystemStyle() -> UIUserInterfaceStyle {
+        if pinsSystemStyleForFoldable() {
+            // Window/controller overrides do not override their parent scene.
+            let scenes = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .filter { $0.session.role == .windowApplication }
+            let scene = scenes.first { $0.windows.contains { $0.isKeyWindow } }
+                ?? scenes.first { $0.activationState == .foregroundActive }
+                ?? scenes.first
+            if let scene {
+                return scene.traitCollection.userInterfaceStyle
+            }
+        }
+        return PublicUtils.currentScreen.traitCollection.userInterfaceStyle
+    }
+    
+    @objc class func setPublicUIStyle() -> UIColor {
+        #if os(iOS) && compiler(>=6.4)
+        _ = hingeStatusObserver
+        #endif
+        if #available(iOS 13.0, *) {
+            if _privateUserInterfaceStyle == .unspecified {
+                _userInterfaceStyle = currentSystemStyle()
+            } else {
+                _userInterfaceStyle = _privateUserInterfaceStyle
+            }
+        }
+        return UIColor.clear
+    }
+    
+    @objc class func userInterfaceStyle() -> UIUserInterfaceStyle {
+        _ = setPublicUIStyle()
+        return _userInterfaceStyle
+    }
+
+    @objc class func overrideUserInterfaceStyle() -> UIUserInterfaceStyle {
+        if pinsSystemStyleForFoldable(), _privateUserInterfaceStyle == .unspecified {
+            return userInterfaceStyle()
+        }
+        return _privateUserInterfaceStyle
+    }
+    
+    @objc class func setUserInterfaceStyle(_ style: UIUserInterfaceStyle) {
+        let oldUserInterfaceStyle = _userInterfaceStyle
+        _privateUserInterfaceStyle = style
+        if pinsSystemStyleForFoldable() {
+            _ = setPublicUIStyle()
+            applyUserInterfaceStyleOverride(overrideUserInterfaceStyle())
+        } else {
+            applyUserInterfaceStyleOverride(style)
+            _ = setPublicUIStyle()
+        }
+
+        if oldUserInterfaceStyle == _userInterfaceStyle {
+            // return
+        }
+        
+        NotificationCenter.default.post(
+            name: Notification.Name(ThemeDidChangeNotification),
+            object: nil
+        )
+    }
+
+    @objc class func systemUserInterfaceStyleDidChange(_ style: UIUserInterfaceStyle) {
+        guard #available(iOS 13.0, *) else { return }
+
+        if _privateUserInterfaceStyle != .unspecified {
+            applyUserInterfaceStyleOverride(_privateUserInterfaceStyle)
+            return
+        }
+
+        let oldUserInterfaceStyle = _userInterfaceStyle
+        // A controller callback can now report our pinned style. Read the
+        // unmodified scene instead when following the system on Duo.
+        _userInterfaceStyle = pinsSystemStyleForFoldable() ? currentSystemStyle() : style
+        applyUserInterfaceStyleOverride(pinsSystemStyleForFoldable() ? _userInterfaceStyle : .unspecified)
+
+        if oldUserInterfaceStyle == _userInterfaceStyle {
+            // return
+        }
+
+        NotificationCenter.default.post(
+            name: Notification.Name(ThemeDidChangeNotification),
+            object: nil
+        )
+    }
+
+    @objc class func applyUserInterfaceStyleOverride(_ style: UIUserInterfaceStyle) {
+        guard #available(iOS 13.0, *) else { return }
+
+        let applyOverride = {
+            let sceneWindows = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+
+            let allWindows = sceneWindows + UIApplication.shared.windows
+            Set(allWindows).forEach { window in
+                window.overrideUserInterfaceStyle = style
+            }
+        }
+
+        if Thread.isMainThread {
+            applyOverride()
+        } else {
+            DispatchQueue.main.async(execute: applyOverride)
+        }
+    }
+    
+    @objc static var menuBackgroundColor: UIColor {
+        _ = setPublicUIStyle()
+        
+        switch userInterfaceStyle() {
+        case .light:
+            return UIColor(
+                red: 242.0/255.0,
+                green: 242.0/255.0,
+                blue: 247.0/255.0,
+                alpha: 1
+            )
+            
+        default:
+#if os(tvOS)
+            return UIColor(
+                red: 28.0/255.0,
+                green: 28.0/255.0,
+                blue: 30.0/255.0,
+                alpha: 1
+            )
+#else
+            if #available(iOS 13.0, *) {
+                let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+                return UIColor.secondarySystemBackground.resolvedColor(with: darkTraits)
+            } else {
+                return UIColor(
+                    red: 28.0/255.0,
+                    green: 28.0/255.0,
+                    blue: 30.0/255.0,
+                    alpha: 1
+                )
+            }
+#endif
+        }
+    }
+    
+    @objc static var hostViewBackgroundColor: UIColor {
+        _ = setPublicUIStyle()
+        
+        switch userInterfaceStyle() {
+        case .light:
+            return UIColor(
+                red: 242.0/255.0,
+                green: 242.0/255.0,
+                blue: 247.0/255.0,
+                alpha: 1
+            )
+            
+        default:
+#if os(tvOS)
+            return UIColor.black
+#else
+            if #available(iOS 13.0, *) {
+                let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+                return UIColor.systemGroupedBackground.resolvedColor(with: darkTraits)
+            } else {
+                return UIColor.black
+            }
+#endif
+        }
+    }
+    
+    @objc static var offlineHostIconBackgroundColor: UIColor {
+        _ = setPublicUIStyle()
+        
+        switch userInterfaceStyle() {
+        case .light:
+            return UIColor(
+                red: 242.0/255.0,
+                green: 242.0/255.0,
+                blue: 247.0/255.0,
+                alpha: 1
+            )
+            
+        default:
+            return UIColor(
+                red: 17.0/255.0,
+                green: 17.0/255.0,
+                blue: 19.0/255.0,
+                alpha: 1
+            )
+        }
+    }
+    
+    @objc static var widgetBackgroundColor: UIColor {
+        _ = setPublicUIStyle()
+        
+        switch userInterfaceStyle() {
+        case .light:
+            return UIColor.white
+        default:
+#if os(tvOS)
+            return UIColor(
+                red: 44.0/255.0,
+                green: 44.0/255.0,
+                blue: 46.0/255.0,
+                alpha: 1
+            )
+#else
+            if #available(iOS 13.0, *) {
+                // return UIColor.secondarySystemBackground
+                let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+                return UIColor.secondarySystemGroupedBackground.resolvedColor(with: darkTraits)
+            } else {
+                return UIColor(
+                    red: 44.0/255.0,
+                    green: 44.0/255.0,
+                    blue: 46.0/255.0,
+                    alpha: 1
+                )
+            }
+#endif
+        }
+    }
+    
+    @objc static var separatorColor: UIColor {
+        _ = setPublicUIStyle()
+        switch userInterfaceStyle() {
+        case .light:
+            if #available(iOS 13.0, *) {
+                let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+                return PublicUtils.liquidGlassEnabled ? legacySepratorColor : UIColor.separator.resolvedColor(with: lightTraits)
+            } else {
+                return UIColor(
+                    red: 214.0/255.0,
+                    green: 214.0/255.0,
+                    blue: 218.0/255.0,
+                    alpha: 1
+                )
+            }
+        default:
+            if #available(iOS 13.0, *) {
+                let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+                return PublicUtils.liquidGlassEnabled ? legacySepratorColor : UIColor.separator.resolvedColor(with: darkTraits)
+            } else {return UIColor(white: 0.28, alpha: 1)}
+        }
+    }
+    
+    @objc static var legacySepratorColor: UIColor {
+        _ = setPublicUIStyle()
+        switch userInterfaceStyle() {
+        case .light:
+            return UIColor(
+                red: 0.23529411764705882,
+                green: 0.23529411764705882,
+                blue: 0.2627450980392157,
+                alpha: 0.29
+            )
+        default:
+            return UIColor(
+                red: 0.32941176470588235,
+                green: 0.32941176470588235,
+                blue: 0.34509803921568627,
+                alpha: 0.6
+            )
+        }
+    }
+
+    @objc static var hostCardSeparatorColor: UIColor {
+        _ = setPublicUIStyle()
+        switch userInterfaceStyle() {
+        case .light:
+            if #available(iOS 13.0, *) {
+                let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+                return UIColor.separator.resolvedColor(with: lightTraits)
+            } else {
+                return UIColor(
+                    red: 214.0/255.0,
+                    green: 214.0/255.0,
+                    blue: 218.0/255.0,
+                    alpha: 1
+                )
+            }
+        default:
+            if #available(iOS 13.0, *) {
+                let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+                return UIColor.separator.resolvedColor(with: darkTraits)
+            } else {return UIColor(white: 0.28, alpha: 1)}
+        }
+    }
+    
+    @objc static var textColor: UIColor {
+        _ = setPublicUIStyle()
+        
+        switch userInterfaceStyle() {
+        case .light:
+            return UIColor.black
+        default:
+            return UIColor.white
+        }
+    }
+    
+    @objc static var sectionLabelTextColor: UIColor {
+        _ = setPublicUIStyle()
+        
+        switch userInterfaceStyle() {
+        case .light:
+            if #available(iOS 13.0, *) {
+                let traits = UITraitCollection(userInterfaceStyle: .light)
+                return UIColor.label.resolvedColor(with: traits)
+            } else {
+                return UIColor.black
+            }
+        default:
+            if #available(iOS 13.0, *) {
+                let traits = UITraitCollection(userInterfaceStyle: .dark)
+                return UIColor.label.resolvedColor(with: traits)
+            } else {
+                return UIColor.white
+            }
+        }
+    }
+    
+    @objc static var appPrimaryColor: UIColor {
+        return UIColor(
+            red: 0.0,
+            green: 0.48,
+            blue: 1.0,
+            alpha: 1.0
+        ) // #0A84FF
+    }
+    
+    @objc static var appSecondaryColor: UIColor {
+        
+        let originalColor = appPrimaryColor
+        let grayColor = UIColor.gray
+        let mixRatio: CGFloat = 0.3
+        
+        var r1: CGFloat = 0
+        var g1: CGFloat = 0
+        var b1: CGFloat = 0
+        var a1: CGFloat = 0
+        
+        var r2: CGFloat = 0
+        var g2: CGFloat = 0
+        var b2: CGFloat = 0
+        var a2: CGFloat = 0
+        
+        originalColor.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        grayColor.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        
+        let r = r1 * (1 - mixRatio) + r2 * mixRatio
+        let g = g1 * (1 - mixRatio) + g2 * mixRatio
+        let b = b1 * (1 - mixRatio) + b2 * mixRatio
+        let a = a1 * (1 - mixRatio) + a2 * mixRatio
+        
+        return UIColor(red: r, green: g, blue: b, alpha: a)
+    }
+    
+    @objc static var appPrimaryColorWithAlpha: UIColor {
+        if userInterfaceStyle() == .dark {
+            return appPrimaryColor.withAlphaComponent(PublicUtils.isTVOS ? 0.313 : 0.275)
+        }
+        return appPrimaryColor.withAlphaComponent(0.24)
+    }
+    
+    @objc static var textTintColorWithAlpha: UIColor {
+        return appPrimaryColor.withAlphaComponent(0.24)
+    }
+    
+    @objc static var textColorGray: UIColor {
+        return UIColor(
+            red: 0.55,
+            green: 0.55,
+            blue: 0.6,
+            alpha: 0.95
+        )
+    }
+    
+    @objc static var lowProfileGray: UIColor {
+        return UIColor(
+            red: 0.65,
+            green: 0.65,
+            blue: 0.65,
+            alpha: 0.4
+        )
+    }
+    
+    @available(iOS 26.0, *)
+    @objc static var liquidGlassSwitchOffTint: UIColor {
+        switch userInterfaceStyle() {
+        case .light:
+#if os(tvOS)
+            return UIColor(white: 1, alpha: 0.18)
+#else
+            return UIColor.systemFill
+#endif
+        default:
+            return UIColor.clear
+        }
+    }
+    
+    @objc static var liquidGlassSliderMaxTrackTint: UIColor {
+#if os(tvOS)
+        return UIColor(white: 1, alpha: 0.16)
+#else
+        if #available(iOS 13.0, *) {
+            switch userInterfaceStyle() {
+            case .light:
+                return UIColor.tertiarySystemFill
+            default:
+                return UIColor.tertiarySystemFill
+            }
+        }
+        else {
+            return UIColor.black
+        }
+#endif
+    }
+}

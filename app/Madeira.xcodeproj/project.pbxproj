@@ -183,6 +183,54 @@
 		A1000245 /* TouchGamepad.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000245 /* TouchGamepad.swift */; };
 		A1000F01 /* GestureZones.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F01 /* GestureZones.swift */; };
 		A1000246 /* TouchControlPresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000246 /* TouchControlPresets.swift */; };
+		A2000F03 /* CommandManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F02 /* CommandManager.swift */; };
+		A2000F05 /* VLControllerNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F04 /* VLControllerNavigator.swift */; };
+		A2000F07 /* VLControllerUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F06 /* VLControllerUtil.swift */; };
+		A2000F09 /* VLDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F08 /* VLDataManager.swift */; };
+		A2000F0B /* VLGenericUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F0A /* VLGenericUtils.swift */; };
+		A2000F0D /* VLMicStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F0C /* VLMicStub.swift */; };
+		A2000F0F /* VLPencilStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F0E /* VLPencilStub.swift */; };
+		A2000F11 /* VLPressureCurveStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F10 /* VLPressureCurveStub.swift */; };
+		A2000F13 /* VLPublicUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F12 /* VLPublicUtils.swift */; };
+		A2000F15 /* VLStreamViewShim.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F14 /* VLStreamViewShim.swift */; };
+		A2000F17 /* VLThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F16 /* VLThemeManager.swift */; };
+		A2000F19 /* VLToolboxShim.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F18 /* VLToolboxShim.swift */; };
+		A2000F1B /* LayoutOnScreenControlsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F1A /* LayoutOnScreenControlsViewController.swift */; };
+		A2000F1D /* ToolBarContainerView.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F1C /* ToolBarContainerView.m */; };
+		A2000F1F /* WidgetPanelStackView.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F1E /* WidgetPanelStackView.m */; };
+		A2000F21 /* OSCProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F20 /* OSCProfile.m */; };
+		A2000F23 /* OSCProfilesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F22 /* OSCProfilesManager.swift */; };
+		A2000F25 /* OnScreenButtonState.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F24 /* OnScreenButtonState.m */; };
+		A2000F27 /* ProfileFileContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F26 /* ProfileFileContainer.swift */; };
+		A2000F29 /* AbstractGamepadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F28 /* AbstractGamepadView.swift */; };
+		A2000F2B /* ProfileSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F2A /* ProfileSelectorViewController.swift */; };
+		A2000F2D /* VirtualKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F2C /* VirtualKeyboardView.swift */; };
+		A2000F2F /* WidgetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F2E /* WidgetPickerView.swift */; };
+		A2000F31 /* WidgetPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F30 /* WidgetPickerViewController.swift */; };
+		A2000F33 /* ControllerSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F32 /* ControllerSupport.m */; };
+		A2000F35 /* VLLiShim.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F34 /* VLLiShim.m */; };
+		A2000F37 /* AlertControllerUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F36 /* AlertControllerUtil.swift */; };
+		A2000F39 /* GraphicUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F38 /* GraphicUtils.swift */; };
+		A2000F3B /* LocalizationHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F3A /* LocalizationHelper.m */; };
+		A2000F3D /* LocalizationHelperExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F3C /* LocalizationHelperExtension.swift */; };
+		A2000F3F /* PublicExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F3E /* PublicExtensions.swift */; };
+		A2000F41 /* VLShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F40 /* VLShapes.swift */; };
+		A2000F43 /* AbstractGamepadOverlayWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F42 /* AbstractGamepadOverlayWidgetView.swift */; };
+		A2000F45 /* CustomTapGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F44 /* CustomTapGestureRecognizer.m */; };
+		A2000F47 /* InertialScroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F46 /* InertialScroller.swift */; };
+		A2000F49 /* LayoutOnScreenControls.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F48 /* LayoutOnScreenControls.m */; };
+		A2000F4B /* MotionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F4A /* MotionHandler.swift */; };
+		A2000F4D /* OnScreenControls.m in Sources */ = {isa = PBXBuildFile; fileRef = A2000F4C /* OnScreenControls.m */; };
+		A2000F4F /* OnScreenWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F4E /* OnScreenWidgetView.swift */; };
+		A2000F51 /* SafeTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F50 /* SafeTimer.swift */; };
+		A2000F53 /* UITouchUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F52 /* UITouchUtil.swift */; };
+		A2000F61 /* VLEditor.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A2000F60 /* VLEditor.storyboard */; };
+		A2000F63 /* VLEditorPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A2000F62 /* VLEditorPad.storyboard */; };
+		A2000F65 /* widgetTemplates.bin in Resources */ = {isa = PBXBuildFile; fileRef = A2000F64 /* widgetTemplates.bin */; };
+		A2000F67 /* widgetTemplatesIPhone.bin in Resources */ = {isa = PBXBuildFile; fileRef = A2000F66 /* widgetTemplatesIPhone.bin */; };
+		A2000F69 /* VLTouch.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000F68 /* VLTouch.xcstrings */; };
+		A2000F6B /* VLTouch.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000F6A /* VLTouch.xcassets */; };
+		A2000F76 /* VLTouchSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F75 /* VLTouchSwitch.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -412,6 +460,66 @@
 		A2000245 /* TouchGamepad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchGamepad.swift; sourceTree = "<group>"; };
 		A2000F01 /* GestureZones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureZones.swift; sourceTree = "<group>"; };
 		A2000246 /* TouchControlPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchControlPresets.swift; sourceTree = "<group>"; };
+		A2000F02 /* CommandManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommandManager.swift"; sourceTree = "<group>"; };
+		A2000F04 /* VLControllerNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLControllerNavigator.swift"; sourceTree = "<group>"; };
+		A2000F06 /* VLControllerUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLControllerUtil.swift"; sourceTree = "<group>"; };
+		A2000F08 /* VLDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLDataManager.swift"; sourceTree = "<group>"; };
+		A2000F0A /* VLGenericUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLGenericUtils.swift"; sourceTree = "<group>"; };
+		A2000F0C /* VLMicStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLMicStub.swift"; sourceTree = "<group>"; };
+		A2000F0E /* VLPencilStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLPencilStub.swift"; sourceTree = "<group>"; };
+		A2000F10 /* VLPressureCurveStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLPressureCurveStub.swift"; sourceTree = "<group>"; };
+		A2000F12 /* VLPublicUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLPublicUtils.swift"; sourceTree = "<group>"; };
+		A2000F14 /* VLStreamViewShim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLStreamViewShim.swift"; sourceTree = "<group>"; };
+		A2000F16 /* VLThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLThemeManager.swift"; sourceTree = "<group>"; };
+		A2000F18 /* VLToolboxShim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLToolboxShim.swift"; sourceTree = "<group>"; };
+		A2000F1A /* LayoutOnScreenControlsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LayoutOnScreenControlsViewController.swift"; sourceTree = "<group>"; };
+		A2000F1C /* ToolBarContainerView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ToolBarContainerView.m"; sourceTree = "<group>"; };
+		A2000F1E /* WidgetPanelStackView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "WidgetPanelStackView.m"; sourceTree = "<group>"; };
+		A2000F20 /* OSCProfile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "OSCProfile.m"; sourceTree = "<group>"; };
+		A2000F22 /* OSCProfilesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OSCProfilesManager.swift"; sourceTree = "<group>"; };
+		A2000F24 /* OnScreenButtonState.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "OnScreenButtonState.m"; sourceTree = "<group>"; };
+		A2000F26 /* ProfileFileContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileFileContainer.swift"; sourceTree = "<group>"; };
+		A2000F28 /* AbstractGamepadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AbstractGamepadView.swift"; sourceTree = "<group>"; };
+		A2000F2A /* ProfileSelectorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileSelectorViewController.swift"; sourceTree = "<group>"; };
+		A2000F2C /* VirtualKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VirtualKeyboardView.swift"; sourceTree = "<group>"; };
+		A2000F2E /* WidgetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WidgetPickerView.swift"; sourceTree = "<group>"; };
+		A2000F30 /* WidgetPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WidgetPickerViewController.swift"; sourceTree = "<group>"; };
+		A2000F32 /* ControllerSupport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ControllerSupport.m"; sourceTree = "<group>"; };
+		A2000F34 /* VLLiShim.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "VLLiShim.m"; sourceTree = "<group>"; };
+		A2000F36 /* AlertControllerUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AlertControllerUtil.swift"; sourceTree = "<group>"; };
+		A2000F38 /* GraphicUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GraphicUtils.swift"; sourceTree = "<group>"; };
+		A2000F3A /* LocalizationHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "LocalizationHelper.m"; sourceTree = "<group>"; };
+		A2000F3C /* LocalizationHelperExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LocalizationHelperExtension.swift"; sourceTree = "<group>"; };
+		A2000F3E /* PublicExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PublicExtensions.swift"; sourceTree = "<group>"; };
+		A2000F40 /* VLShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLShapes.swift"; sourceTree = "<group>"; };
+		A2000F42 /* AbstractGamepadOverlayWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AbstractGamepadOverlayWidgetView.swift"; sourceTree = "<group>"; };
+		A2000F44 /* CustomTapGestureRecognizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "CustomTapGestureRecognizer.m"; sourceTree = "<group>"; };
+		A2000F46 /* InertialScroller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InertialScroller.swift"; sourceTree = "<group>"; };
+		A2000F48 /* LayoutOnScreenControls.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "LayoutOnScreenControls.m"; sourceTree = "<group>"; };
+		A2000F4A /* MotionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MotionHandler.swift"; sourceTree = "<group>"; };
+		A2000F4C /* OnScreenControls.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "OnScreenControls.m"; sourceTree = "<group>"; };
+		A2000F4E /* OnScreenWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnScreenWidgetView.swift"; sourceTree = "<group>"; };
+		A2000F50 /* SafeTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SafeTimer.swift"; sourceTree = "<group>"; };
+		A2000F52 /* UITouchUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITouchUtil.swift"; sourceTree = "<group>"; };
+		A2000F54 /* StreamConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StreamConfiguration.h"; sourceTree = "<group>"; };
+		A2000F55 /* VoidController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VoidController.h"; sourceTree = "<group>"; };
+		A2000F56 /* ToolBarContainerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ToolBarContainerView.h"; sourceTree = "<group>"; };
+		A2000F57 /* WidgetPanelStackView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WidgetPanelStackView.h"; sourceTree = "<group>"; };
+		A2000F58 /* OSCProfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OSCProfile.h"; sourceTree = "<group>"; };
+		A2000F59 /* OnScreenButtonState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OnScreenButtonState.h"; sourceTree = "<group>"; };
+		A2000F5A /* ControllerSupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ControllerSupport.h"; sourceTree = "<group>"; };
+		A2000F5B /* VLLiShim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VLLiShim.h"; sourceTree = "<group>"; };
+		A2000F5C /* LocalizationHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LocalizationHelper.h"; sourceTree = "<group>"; };
+		A2000F5D /* CustomTapGestureRecognizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CustomTapGestureRecognizer.h"; sourceTree = "<group>"; };
+		A2000F5E /* LayoutOnScreenControls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LayoutOnScreenControls.h"; sourceTree = "<group>"; };
+		A2000F5F /* OnScreenControls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OnScreenControls.h"; sourceTree = "<group>"; };
+		A2000F60 /* VLEditor.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "VLEditor.storyboard"; sourceTree = "<group>"; };
+		A2000F62 /* VLEditorPad.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "VLEditorPad.storyboard"; sourceTree = "<group>"; };
+		A2000F64 /* widgetTemplates.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "widgetTemplates.bin"; sourceTree = "<group>"; };
+		A2000F66 /* widgetTemplatesIPhone.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "widgetTemplatesIPhone.bin"; sourceTree = "<group>"; };
+		A2000F68 /* VLTouch.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = "VLTouch.xcstrings"; sourceTree = "<group>"; };
+		A2000F75 /* VLTouchSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLTouchSwitch.swift"; sourceTree = "<group>"; };
+		A2000F6A /* VLTouch.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = VLTouch.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -633,6 +741,7 @@
 				A2000006 /* Madeira-Bridging-Header.h */,
 				A2000007 /* Madeira.entitlements */,
 				A2000008 /* Info.plist */,
+				A2000F6C /* VLTouch */,
 			);
 			path = Madeira;
 			sourceTree = "<group>";
@@ -697,6 +806,145 @@
 				B2000021 /* Info.plist */,
 			);
 			path = MadeiraJITHelper;
+			sourceTree = "<group>";
+		};
+		A2000F6C /* VLTouch */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F6D /* Model */,
+				A2000F6E /* Commands */,
+				A2000F6F /* Widgets */,
+				A2000F70 /* Editor */,
+				A2000F71 /* Pickers */,
+				A2000F72 /* Support */,
+				A2000F73 /* Compat */,
+				A2000F74 /* Sink */,
+				A2000F77 /* Host */,
+				A2000F6A /* VLTouch.xcassets */,
+			);
+			path = VLTouch;
+			sourceTree = "<group>";
+		};
+		A2000F6D /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F20 /* OSCProfile.m */,
+				A2000F22 /* OSCProfilesManager.swift */,
+				A2000F24 /* OnScreenButtonState.m */,
+				A2000F26 /* ProfileFileContainer.swift */,
+				A2000F58 /* OSCProfile.h */,
+				A2000F59 /* OnScreenButtonState.h */,
+				A2000F64 /* widgetTemplates.bin */,
+				A2000F66 /* widgetTemplatesIPhone.bin */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		A2000F6E /* Commands */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F02 /* CommandManager.swift */,
+			);
+			path = Commands;
+			sourceTree = "<group>";
+		};
+		A2000F6F /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F42 /* AbstractGamepadOverlayWidgetView.swift */,
+				A2000F44 /* CustomTapGestureRecognizer.m */,
+				A2000F46 /* InertialScroller.swift */,
+				A2000F48 /* LayoutOnScreenControls.m */,
+				A2000F4A /* MotionHandler.swift */,
+				A2000F4C /* OnScreenControls.m */,
+				A2000F4E /* OnScreenWidgetView.swift */,
+				A2000F50 /* SafeTimer.swift */,
+				A2000F52 /* UITouchUtil.swift */,
+				A2000F5D /* CustomTapGestureRecognizer.h */,
+				A2000F5E /* LayoutOnScreenControls.h */,
+				A2000F5F /* OnScreenControls.h */,
+			);
+			path = Widgets;
+			sourceTree = "<group>";
+		};
+		A2000F70 /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F1A /* LayoutOnScreenControlsViewController.swift */,
+				A2000F1C /* ToolBarContainerView.m */,
+				A2000F1E /* WidgetPanelStackView.m */,
+				A2000F56 /* ToolBarContainerView.h */,
+				A2000F57 /* WidgetPanelStackView.h */,
+				A2000F60 /* VLEditor.storyboard */,
+				A2000F62 /* VLEditorPad.storyboard */,
+			);
+			path = Editor;
+			sourceTree = "<group>";
+		};
+		A2000F71 /* Pickers */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F28 /* AbstractGamepadView.swift */,
+				A2000F2A /* ProfileSelectorViewController.swift */,
+				A2000F2C /* VirtualKeyboardView.swift */,
+				A2000F2E /* WidgetPickerView.swift */,
+				A2000F30 /* WidgetPickerViewController.swift */,
+			);
+			path = Pickers;
+			sourceTree = "<group>";
+		};
+		A2000F72 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F36 /* AlertControllerUtil.swift */,
+				A2000F38 /* GraphicUtils.swift */,
+				A2000F3A /* LocalizationHelper.m */,
+				A2000F3C /* LocalizationHelperExtension.swift */,
+				A2000F3E /* PublicExtensions.swift */,
+				A2000F40 /* VLShapes.swift */,
+				A2000F5C /* LocalizationHelper.h */,
+				A2000F68 /* VLTouch.xcstrings */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		A2000F73 /* Compat */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F04 /* VLControllerNavigator.swift */,
+				A2000F06 /* VLControllerUtil.swift */,
+				A2000F08 /* VLDataManager.swift */,
+				A2000F0A /* VLGenericUtils.swift */,
+				A2000F0C /* VLMicStub.swift */,
+				A2000F0E /* VLPencilStub.swift */,
+				A2000F10 /* VLPressureCurveStub.swift */,
+				A2000F12 /* VLPublicUtils.swift */,
+				A2000F14 /* VLStreamViewShim.swift */,
+				A2000F16 /* VLThemeManager.swift */,
+				A2000F18 /* VLToolboxShim.swift */,
+				A2000F54 /* StreamConfiguration.h */,
+				A2000F55 /* VoidController.h */,
+			);
+			path = Compat;
+			sourceTree = "<group>";
+		};
+		A2000F74 /* Sink */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F32 /* ControllerSupport.m */,
+				A2000F34 /* VLLiShim.m */,
+				A2000F5A /* ControllerSupport.h */,
+				A2000F5B /* VLLiShim.h */,
+			);
+			path = Sink;
+			sourceTree = "<group>";
+		};
+		A2000F77 /* Host */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F75 /* VLTouchSwitch.swift */,
+			);
+			path = Host;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -800,6 +1048,12 @@
 				A1000040 /* prefix-template.tar.gz in Resources */,
 				A1000094 /* cacert.pem in Resources */,
 				A1000910 /* Assets.xcassets in Resources */,
+				A2000F61 /* VLEditor.storyboard in Resources */,
+				A2000F63 /* VLEditorPad.storyboard in Resources */,
+				A2000F65 /* widgetTemplates.bin in Resources */,
+				A2000F67 /* widgetTemplatesIPhone.bin in Resources */,
+				A2000F69 /* VLTouch.xcstrings in Resources */,
+				A2000F6B /* VLTouch.xcassets in Resources */,
 				B1000004 /* madeira-jit.js in Resources */,
 				B1000051 /* Madeira JIT.shortcut in Resources */,
 			);
@@ -972,6 +1226,48 @@
 				C1000F01 /* PhonePointer.m in Sources */,
 				A1000035 /* StikJITHelper.swift in Sources */,
 				A1000980 /* JITPoolMeter.swift in Sources */,
+				A2000F03 /* CommandManager.swift in Sources */,
+				A2000F05 /* VLControllerNavigator.swift in Sources */,
+				A2000F07 /* VLControllerUtil.swift in Sources */,
+				A2000F09 /* VLDataManager.swift in Sources */,
+				A2000F0B /* VLGenericUtils.swift in Sources */,
+				A2000F0D /* VLMicStub.swift in Sources */,
+				A2000F0F /* VLPencilStub.swift in Sources */,
+				A2000F11 /* VLPressureCurveStub.swift in Sources */,
+				A2000F13 /* VLPublicUtils.swift in Sources */,
+				A2000F15 /* VLStreamViewShim.swift in Sources */,
+				A2000F17 /* VLThemeManager.swift in Sources */,
+				A2000F19 /* VLToolboxShim.swift in Sources */,
+				A2000F1B /* LayoutOnScreenControlsViewController.swift in Sources */,
+				A2000F1D /* ToolBarContainerView.m in Sources */,
+				A2000F1F /* WidgetPanelStackView.m in Sources */,
+				A2000F21 /* OSCProfile.m in Sources */,
+				A2000F23 /* OSCProfilesManager.swift in Sources */,
+				A2000F25 /* OnScreenButtonState.m in Sources */,
+				A2000F27 /* ProfileFileContainer.swift in Sources */,
+				A2000F29 /* AbstractGamepadView.swift in Sources */,
+				A2000F2B /* ProfileSelectorViewController.swift in Sources */,
+				A2000F2D /* VirtualKeyboardView.swift in Sources */,
+				A2000F2F /* WidgetPickerView.swift in Sources */,
+				A2000F31 /* WidgetPickerViewController.swift in Sources */,
+				A2000F33 /* ControllerSupport.m in Sources */,
+				A2000F35 /* VLLiShim.m in Sources */,
+				A2000F37 /* AlertControllerUtil.swift in Sources */,
+				A2000F39 /* GraphicUtils.swift in Sources */,
+				A2000F3B /* LocalizationHelper.m in Sources */,
+				A2000F3D /* LocalizationHelperExtension.swift in Sources */,
+				A2000F3F /* PublicExtensions.swift in Sources */,
+				A2000F41 /* VLShapes.swift in Sources */,
+				A2000F43 /* AbstractGamepadOverlayWidgetView.swift in Sources */,
+				A2000F45 /* CustomTapGestureRecognizer.m in Sources */,
+				A2000F47 /* InertialScroller.swift in Sources */,
+				A2000F49 /* LayoutOnScreenControls.m in Sources */,
+				A2000F4B /* MotionHandler.swift in Sources */,
+				A2000F4D /* OnScreenControls.m in Sources */,
+				A2000F4F /* OnScreenWidgetView.swift in Sources */,
+				A2000F51 /* SafeTimer.swift in Sources */,
+				A2000F53 /* UITouchUtil.swift in Sources */,
+				A2000F76 /* VLTouchSwitch.swift in Sources */,
 				B1000001 /* JITSetup.swift in Sources */,
 				B1000050 /* JITNetwork.swift in Sources */,
 				B1000002 /* JITBuiltInHost.swift in Sources */,
@@ -1088,6 +1384,13 @@
 					"$(SRCROOT)/../FEX/build-ios/include",
 					"$(SRCROOT)/../FEX/build-ios/FEXCore/Source",
 					"$(SRCROOT)/../FEX",
+					// VLTouch: so the ported ObjC files find each other (and the Compat/Sink headers) by bare name.
+					"$(SRCROOT)/Madeira/VLTouch/Model",
+					"$(SRCROOT)/Madeira/VLTouch/Widgets",
+					"$(SRCROOT)/Madeira/VLTouch/Sink",
+					"$(SRCROOT)/Madeira/VLTouch/Support",
+					"$(SRCROOT)/Madeira/VLTouch/Editor",
+					"$(SRCROOT)/Madeira/VLTouch/Compat",
 				);
 				INFOPLIST_FILE = Madeira/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -1140,6 +1443,13 @@
 					"$(SRCROOT)/../FEX/build-ios/include",
 					"$(SRCROOT)/../FEX/build-ios/FEXCore/Source",
 					"$(SRCROOT)/../FEX",
+					// VLTouch: so the ported ObjC files find each other (and the Compat/Sink headers) by bare name.
+					"$(SRCROOT)/Madeira/VLTouch/Model",
+					"$(SRCROOT)/Madeira/VLTouch/Widgets",
+					"$(SRCROOT)/Madeira/VLTouch/Sink",
+					"$(SRCROOT)/Madeira/VLTouch/Support",
+					"$(SRCROOT)/Madeira/VLTouch/Editor",
+					"$(SRCROOT)/Madeira/VLTouch/Compat",
 				);
 				INFOPLIST_FILE = Madeira/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
