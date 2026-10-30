@@ -54,7 +54,9 @@ import Combine // VLTouch: GamepadOverlayStateCenter is an ObservableObject (ver
 
     case null = 0xFFFFFF
 }
-// VLTouch: verbatim field shape from ControllerUtil.swift (minus the live-gamepad init, which S5 owns).
+// VLTouch: field shape from VoidLink's ControllerUtil.swift; the ported picker code renders the
+// six defaulted fields. Dropped with the controller-navigation feature: nothing publishes live
+// snapshots (VLTouch never assigns valueChangedHandler — Madeira's GamepadInput owns it).
 struct GamepadOverlaySnapshot: Equatable {
     var pressedButtons: Set<ControllerElement> = []
     var dpadHighlight: Int = 0
@@ -65,7 +67,7 @@ struct GamepadOverlaySnapshot: Equatable {
 
     static let idle = GamepadOverlaySnapshot()
 }
-// VLTouch: verbatim shape from ControllerUtil.swift; S5 owns the live publisher.
+// VLTouch: shape from VoidLink's ControllerUtil.swift; nothing publishes live snapshots (see above).
 final class GamepadOverlayStateCenter: NSObject, ObservableObject {
     static let shared = GamepadOverlayStateCenter()
 
@@ -161,6 +163,8 @@ extension ControllerCollectionNavigationDelegate {
 extension UIAlertController: ControllerUINavigationDelegate {
 }
 
+// VLTouch: no-op — controller navigation is dropped (D4); the API stays so the
+// profile/widget pickers compile. Delegates are tracked but never driven.
 final class ControllerNavigator: NSObject {
 
     static var radialMenuButtonPosition: ControllerElementPosition {

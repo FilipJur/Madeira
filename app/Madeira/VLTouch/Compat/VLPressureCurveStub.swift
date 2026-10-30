@@ -1,7 +1,8 @@
-// VLTouch: Compat stub; S5 makes real what the runtime needs.
+// VLTouch: no-op — pressure-curve editor dropped with the storefront-gated
+// pencil pack; the type exists only so the delegate protocol compiles. Reached
+// only through OnScreenFunctionalWidgetDelegate.presentPressureCurveVC().
 import Foundation
 
-// Reached only through OnScreenFunctionalWidgetDelegate.presentPressureCurveVC().
 @objcMembers
 final class PressureCurve: NSObject {
 }
