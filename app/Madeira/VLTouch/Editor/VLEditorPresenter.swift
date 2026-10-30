@@ -50,10 +50,24 @@ import UIKit
         editor.modalPresentationStyle = .overFullScreen
         editor.quickSwitchEnabled = false
         editor.profileSelectorLoadingMode = .selectProfileFromLayoutTool
-        editor.onDismissed = onClose
 
-        editor.loadViewIfNeeded() // viewDidLoad sees the storyboard's design size; overwrite it right after
-        OSCProfilesManager.setLayoutViewBounds(bounds)
+        // .overFullScreen never consults the editor's supportedInterfaceOrientations, so a phone held
+        // in portrait has to be turned explicitly, and turned back when the editor closes.
+        let scene = window.windowScene
+        let wasPortrait = isPhone && scene?.interfaceOrientation.isPortrait == true
+        if wasPortrait {
+            scene?.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
+                NSLog("VLTouch: editor landscape request failed: %@", String(describing: error))
+            }
+        }
+        editor.onDismissed = {
+            if wasPortrait {
+                scene?.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { _ in }
+            }
+            onClose()
+        }
+
+        editor.loadViewIfNeeded() // viewDidLoad sees the storyboard's design size; viewDidAppear records the real bounds
         editor.view.backgroundColor = .clear
         editor.toolbarStackView.isHidden = false
         editor.toolbarRootView.isHidden = false

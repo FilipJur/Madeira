@@ -311,6 +311,7 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
         selectedWidget = nil
         widgetPanelStoredCenter = widgetPanelStack.center
         setupWidgetPanel()
+        OSCProfilesManager.setLayoutViewBounds(view.bounds) // VLTouch: the real size, after presentation and any rotation
         // print("loadingMode \(profileSelectorLoadingMode)")
         profileRefresh()
         if !toolbarStackView.isHidden {
@@ -322,7 +323,10 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
         super.viewDidDisappear(animated)
         NotificationCenter.default.removeObserver(self)
         // VLTouch: only a real dismissal (own, or the presenter's); a child (picker, alert) covering the editor also disappears it.
-        if isBeingDismissed || presentingViewController?.isBeingDismissed == true, let onDismissed {
+        let presenterGone = presentingViewController == nil
+            || presentingViewController?.isBeingDismissed == true
+            || (view.window == nil && presentingViewController?.viewIfLoaded?.window == nil)
+        if isBeingDismissed || presenterGone, let onDismissed {
             self.onDismissed = nil
             onDismissed()
         }
