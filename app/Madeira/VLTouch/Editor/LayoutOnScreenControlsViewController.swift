@@ -34,6 +34,10 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
     var onScreenWidgetViews = NSMutableSet()
     var OSCSegmentSelected: Int = 0
     dynamic var quickSwitchEnabled = false
+    /// VLTouch: called once, after the editor has been dismissed (close button, save-and-close,
+    /// profile-selector dismissal). Stands in for the host callbacks VoidLink got through
+    /// `GameProfileSelectorCloseNotification`.
+    var onDismissed: (() -> Void)?
 
     @IBOutlet weak var trashCanButton: UIButton!
     @IBOutlet weak var undoButton: UIButton!
@@ -317,6 +321,11 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         NotificationCenter.default.removeObserver(self)
+        // VLTouch: only a real dismissal; a fullScreen child (picker, alert) covering the editor also disappears it.
+        if isBeingDismissed, let onDismissed {
+            self.onDismissed = nil
+            onDismissed()
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
