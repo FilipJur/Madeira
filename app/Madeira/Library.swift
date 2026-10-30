@@ -201,6 +201,8 @@ struct LibraryEntry: Codable, Identifiable {
     /// Session menu shows it and an edit is written back to it; nil for controls
     /// no layout holds. Older files have none.
     var controlLayout: String?
+    /// VoidLink widget profile (VLTouch/Model) this game uses when touch-system is voidlink; nil: whichever is selected.
+    var vlTouchProfile: String?
     /// The game's gesture zones (GestureZones.swift), kept with its controls. Older files have none.
     var zones: [GestureZone]?
     var lastPlayed: Date?
@@ -1364,6 +1366,7 @@ final class LibraryModel: ObservableObject {
         padMouseVertical = GamepadInput.keyboardMouseAvailable ? (entry.padMouseVertical ?? 1) : 1
         controllerMode = GamepadInput.keyboardMouseAvailable ? entry.controllerMode : nil
         applyControllerMode()
+        MainActor.assumeIsolated { VLTouchSwitch.beginSession(entry) }   // VLTouch: re-reads touch-system for this game
         MetalHostView.shared.isHidden = false
         ProMotionIntent.apply(mode: entry.effectiveFPSMode)
         ThermalPacing.shared.begin()
@@ -1485,6 +1488,7 @@ final class LibraryModel: ObservableObject {
     }
     func showMenu() {
         LibraryKeyboard.hide()
+        MainActor.assumeIsolated { if VLTouchSwitch.active { VLSink.releaseAll() } }   // VLTouch
         LibraryController.shared.configure(enabled: enabled, ownsInput: true)
         menu = true
     }
@@ -1509,6 +1513,7 @@ final class LibraryModel: ObservableObject {
             entry.zones = GestureZonesModel.shared.zones
             if ControlPresetsModel.enabled { entry.controlLayout = controls.layoutID }
             entry.touchControls = controls.visible
+            MainActor.assumeIsolated { if VLTouchSwitch.active, let name = VLProfiles.selectedName { entry.vlTouchProfile = name } }   // VLTouch
             entry.fpsMode = fpsMode; entry.performance = performance
             entry.overlayFields = overlayFields
             entry.controlOpacity = opacity; entry.controlSize = controls.sizeScale
@@ -1526,6 +1531,7 @@ final class LibraryModel: ObservableObject {
         else if sawProcess, let report = exitReport() { error = report }
         timer?.invalidate(); timer = nil
         saveCurrentProfile()
+        MainActor.assumeIsolated { VLTouchSwitch.endSession() }   // VLTouch: save the widgets' changes, release, restore the profile
         controllerMode = nil
         controllerBinds = [:]
         padMouseVertical = 1
@@ -3033,6 +3039,9 @@ struct LibraryView: View {
             if settingsShow("pointer", "mouse", "cursor", "touch", "trackpad", "sensitivity") {
                 Section("Pointer") { LibraryPointerSettings() }
             }
+            if settingsShow("touch", "controller", "gamepad", "voidlink", "widgets", "virtual") {
+                Section("Touch controls") { VLTouchSettings() }
+            }
             if GraphicsSettings.shown, settingsShow("graphics", "Direct3D", "D3D9", "D3D10", "D3D11", "D3D12", "DXMT", "wined3d",
                                                     "vkd3d", "DXVK", "Vulkan", "MoltenVK", "KosmicKrisp") {
                 GraphicsSettings(refresh: settingsRefresh)
@@ -3885,6 +3894,7 @@ struct LibraryDetail: View {
                     FPSChoice(mode: $entry.fpsMode)
                     Toggle("Performance overlay", isOn: $entry.performance)
                     Toggle("Touch controls", isOn: $entry.touchControls)
+                    VLTouchSystemPicker(entry: entry) { reloadBCD() }
                 }
                 ForEach(Array(pageGroups.enumerated()), id: \.offset) { _, group in
                     Section {
@@ -5140,17 +5150,23 @@ struct LibraryHUD: View {
                 HStack { Label("Session", systemImage: "gamecontroller.fill").font(.title2.bold()); Spacer(); Button("Done") { model.menu = false }.buttonStyle(.bordered) }
                 // The controls come first, the easiest to reach; the overlay settings last.
                 Toggle("Touch controls", isOn: $controls.visible)
+                if let active = model.activeEntry { VLTouchSystemPicker(entry: active, live: true) { model.objectWillChange.send() } }
                 // The named layouts (Xbox controller, custom ones) live here in a session: this
                 // menu replaces the overlay's top bar, where the same menu sits outside the library.
-                if controls.visible && ControlPresetsModel.enabled {
+                if controls.visible && ControlPresetsModel.enabled && !VLTouchSwitch.active {
                     ControlLayoutMenu(style: .row) { openedEditor in
                         model.saveCurrentProfile()
                         if openedEditor { model.menu = false }
                     }
                 }
                 LabeledContent("Opacity") { Slider(value: $model.opacity, in: 0.15...1) }
-                LabeledContent("Size") { Slider(value: $controls.sizeScale, in: 0.5...2) }
-                Button("Edit controls", systemImage: "slider.horizontal.3") { controls.visible = true; controls.editing = true; model.menu = false }
+                if !VLTouchSwitch.active { LabeledContent("Size") { Slider(value: $controls.sizeScale, in: 0.5...2) } }
+                if VLTouchSwitch.active {
+                    Button("Edit widgets", systemImage: "slider.horizontal.3") { model.menu = false; VLTouchHost.openEditor() }
+                    Button("Widget profiles", systemImage: "square.stack") { model.menu = false; VLTouchHost.openProfiles() }
+                } else {
+                    Button("Edit controls", systemImage: "slider.horizontal.3") { controls.visible = true; controls.editing = true; model.menu = false }
+                }
                 if GamepadInput.keyboardMouseAvailable {
                     ControllerModeChoice(mode: Binding(get: { model.controllerMode }, set: { model.controllerMode = $0; model.saveCurrentProfile() }))
                     if model.controllerMode == "keys" {

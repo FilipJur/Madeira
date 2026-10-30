@@ -4133,6 +4133,12 @@ final class ControlsWindow: UIWindow {
                 (library.performance && library.performanceRect.contains(point)) {
                 return super.hitTest(point, with: event)
             }
+            // VLTouch: a session on VoidLink's widgets; an open editor or picker takes every touch.
+            if VLTouchSwitch.active {
+                if rootViewController?.presentedViewController != nil { return super.hitTest(point, with: event) }
+                if let widget = VLTouchLayer.hit(point, with: event, in: self) { return widget }
+                return m.visible && GestureZonesModel.shared.contains(point, in: bounds) ? super.hitTest(point, with: event) : nil
+            }
             guard m.hitsInteractive(point, in: bounds, topBar: false) else { return nil }
             return super.hitTest(point, with: event)
         }
@@ -4177,6 +4183,7 @@ struct TouchControlsOverlay: View {
     @ObservedObject private var m = TouchControlsModel.shared
     @ObservedObject private var library = LibraryModel.shared
     @ObservedObject private var zones = GestureZonesModel.shared
+    @ObservedObject private var vlModal = VLTouchModal.shared   // VLTouch
     @State private var pinchBase: Double?
 
     var body: some View {
@@ -4216,6 +4223,7 @@ struct TouchControlsOverlay: View {
             .onChange(of: m.selected) { _, new in if new != nil { zones.selected = nil } }
             .onChange(of: m.editing) { _, _ in configureGamepad(landscape: landscape) }
             .onChange(of: library.blocksGameplayTouch) { _, _ in configureGamepad(landscape: landscape) }
+            .onChange(of: vlModal.open) { _, _ in configureGamepad(landscape: landscape) }
             .onDisappear { GamepadInput.shared.configureTouch(controls: []); TouchMouseGate.padOverlay = false }
         }
         .ignoresSafeArea()
@@ -4235,7 +4243,7 @@ struct TouchControlsOverlay: View {
                 // A library session's Control opacity; full while editing.
                 .opacity(session && !m.editing ? library.opacity : 1)
         }
-        if #available(iOS 26.0, *) {
+        if VLTouchSwitch.active { VLTouchLayer(screen: screen, opacity: library.opacity) } else if #available(iOS 26.0, *) {
             GlassEffectContainer(spacing: 12) {
                 ZStack { buttons }
                     .frame(width: screen.width, height: screen.height, alignment: .topLeading)
@@ -4247,11 +4255,11 @@ struct TouchControlsOverlay: View {
 
     private func configureGamepad(landscape: Bool) {
         let ids = landscape && m.visible
-            ? m.controls.filter { $0.action.padName.map(TouchPadAction.supported) ?? false }.map(\.id)
+            ? (VLTouchSwitch.active ? [VLSink.control] : m.controls.filter { $0.action.padName.map(TouchPadAction.supported) ?? false }.map(\.id))
                 + (GestureZonesModel.enabled ? zones.zones.filter(\.feedsPad).map(\.id) : []) : []
         // Menus and the control editor keep the pad connected but take no input (#204);
         // a touch that misses the controls is no mouse only while they do (#150).
-        let accepting = !m.editing && !library.blocksGameplayTouch
+        let accepting = !m.editing && !library.blocksGameplayTouch && !vlModal.open
         GamepadInput.shared.configureTouch(controls: Set(ids), acceptingInput: accepting)
         TouchMouseGate.padOverlay = accepting && !ids.isEmpty
     }
