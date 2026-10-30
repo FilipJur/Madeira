@@ -82,6 +82,18 @@ Acceptance: app target builds with all VoidLink code linked; upstream touch cont
 
 `OnScreenWidgetView.swift`, `CommandManager.swift`, `OnScreenControls.m`, `MotionHandler.swift` stay verbatim and unowned in P3; fixes to them happen only in G2 fix rounds, one owner each. Old P4 folds into S2. DS4 touchpad + controller motion become a later phase (they need `GamepadInput.swift` changes).
 
+**Wave contract (lead, after P2 merge).** Cross-slice entry points exist as registered placeholder files, so no P3 worker edits `project.pbxproj` except S2 (new files under `Host/` only):
+
+| File | Owner | API others call |
+|---|---|---|
+| `Sink/VLSink.swift` | S1 | `VLSink.control: UUID`, `publish(buttons:leftTrigger:rightTrigger:leftX:leftY:rightX:rightY:)` (from `ControllerSupport.updateFinished:`), `releaseAll()` |
+| `Model/VLProfiles.swift` | S5 | `prepare(bounds:)`, `names()`, `selectedName`, `select(name:) -> Bool` |
+| `Editor/VLEditorPresenter.swift` | S3 | `present(from:onClose:)` |
+| `Pickers/VLProfilePresenter.swift` | S4 | `present(from:pickOnly:onClose:)` |
+| `Host/VLTouchLayer.swift`, `Host/VLTouchHost.swift` | S2 | — |
+
+Signatures are fixed for the wave; a slice that needs a change reports it instead of editing another slice's file.
+
 ## Decisions
 
 | # | Decision | Result |

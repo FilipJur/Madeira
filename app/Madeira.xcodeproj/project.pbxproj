@@ -231,6 +231,12 @@
 		A2000F69 /* VLTouch.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000F68 /* VLTouch.xcstrings */; };
 		A2000F6B /* VLTouch.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000F6A /* VLTouch.xcassets */; };
 		A2000F76 /* VLTouchSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F75 /* VLTouchSwitch.swift */; };
+		A2000F79 /* VLSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F78 /* VLSink.swift */; };
+		A2000F7B /* VLProfiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F7A /* VLProfiles.swift */; };
+		A2000F7D /* VLEditorPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F7C /* VLEditorPresenter.swift */; };
+		A2000F7F /* VLProfilePresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F7E /* VLProfilePresenter.swift */; };
+		A2000F81 /* VLTouchLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F80 /* VLTouchLayer.swift */; };
+		A2000F83 /* VLTouchHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F82 /* VLTouchHost.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -519,6 +525,12 @@
 		A2000F66 /* widgetTemplatesIPhone.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "widgetTemplatesIPhone.bin"; sourceTree = "<group>"; };
 		A2000F68 /* VLTouch.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = "VLTouch.xcstrings"; sourceTree = "<group>"; };
 		A2000F75 /* VLTouchSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLTouchSwitch.swift"; sourceTree = "<group>"; };
+		A2000F78 /* VLSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLSink.swift"; sourceTree = "<group>"; };
+		A2000F7A /* VLProfiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLProfiles.swift"; sourceTree = "<group>"; };
+		A2000F7C /* VLEditorPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLEditorPresenter.swift"; sourceTree = "<group>"; };
+		A2000F7E /* VLProfilePresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLProfilePresenter.swift"; sourceTree = "<group>"; };
+		A2000F80 /* VLTouchLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLTouchLayer.swift"; sourceTree = "<group>"; };
+		A2000F82 /* VLTouchHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLTouchHost.swift"; sourceTree = "<group>"; };
 		A2000F6A /* VLTouch.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = VLTouch.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -836,6 +848,7 @@
 				A2000F59 /* OnScreenButtonState.h */,
 				A2000F64 /* widgetTemplates.bin */,
 				A2000F66 /* widgetTemplatesIPhone.bin */,
+				A2000F7A /* VLProfiles.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -877,6 +890,7 @@
 				A2000F57 /* WidgetPanelStackView.h */,
 				A2000F60 /* VLEditor.storyboard */,
 				A2000F62 /* VLEditorPad.storyboard */,
+				A2000F7C /* VLEditorPresenter.swift */,
 			);
 			path = Editor;
 			sourceTree = "<group>";
@@ -889,6 +903,7 @@
 				A2000F2C /* VirtualKeyboardView.swift */,
 				A2000F2E /* WidgetPickerView.swift */,
 				A2000F30 /* WidgetPickerViewController.swift */,
+				A2000F7E /* VLProfilePresenter.swift */,
 			);
 			path = Pickers;
 			sourceTree = "<group>";
@@ -935,6 +950,7 @@
 				A2000F34 /* VLLiShim.m */,
 				A2000F5A /* ControllerSupport.h */,
 				A2000F5B /* VLLiShim.h */,
+				A2000F78 /* VLSink.swift */,
 			);
 			path = Sink;
 			sourceTree = "<group>";
@@ -943,6 +959,8 @@
 			isa = PBXGroup;
 			children = (
 				A2000F75 /* VLTouchSwitch.swift */,
+				A2000F80 /* VLTouchLayer.swift */,
+				A2000F82 /* VLTouchHost.swift */,
 			);
 			path = Host;
 			sourceTree = "<group>";
@@ -1268,6 +1286,12 @@
 				A2000F51 /* SafeTimer.swift in Sources */,
 				A2000F53 /* UITouchUtil.swift in Sources */,
 				A2000F76 /* VLTouchSwitch.swift in Sources */,
+				A2000F79 /* VLSink.swift in Sources */,
+				A2000F7B /* VLProfiles.swift in Sources */,
+				A2000F7D /* VLEditorPresenter.swift in Sources */,
+				A2000F7F /* VLProfilePresenter.swift in Sources */,
+				A2000F81 /* VLTouchLayer.swift in Sources */,
+				A2000F83 /* VLTouchHost.swift in Sources */,
 				B1000001 /* JITSetup.swift in Sources */,
 				B1000050 /* JITNetwork.swift in Sources */,
 				B1000002 /* JITBuiltInHost.swift in Sources */,
