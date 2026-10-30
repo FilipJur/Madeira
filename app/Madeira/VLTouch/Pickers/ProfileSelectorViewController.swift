@@ -243,7 +243,8 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
         didReportDismissal = true
         let callback = onDismissed
         onDismissed = nil
-        callback?()
+        // One hop later, so the host can present again from its callback once UIKit finished dismissing.
+        DispatchQueue.main.async { callback?() }
     }
     
     override func viewDidLoad() {
@@ -774,8 +775,8 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
     @IBAction func renameTapped(_ sender: Any?) {
         guard let index = validProfileIndex(selectedProfileIndex),
               let profile = profiles.object(at: index) as? OSCProfile else { return }
-        guard index > 0 else {
-            presentMessageAlert(LocalizationHelper.localizedString(forKey: "Saving over the 'Default' profile is not allowed"))
+        guard index > 0, profile.name != "Default" else {
+            presentMessageAlert("The default profile can't be renamed")
             return
         }
 
@@ -812,21 +813,33 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
             if let problem {
                 let alert = UIAlertController(title: "", message: LocalizationHelper.localizedString(forKey: problem), preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "Ok"), style: .default) { _ in
-                    self.present(inputAlert, animated: true)
+                    alert.dismiss(animated: false) {
+                        self.present(inputAlert, animated: true)
+                    }
                 })
                 self.present(alert, animated: true)
                 return
             }
-            self.commitRename(from: oldName, to: newName)
+            self.commitRename(at: index, from: oldName, to: newName)
         })
 
         present(inputAlert, animated: true)
     }
 
-    private func commitRename(from oldName: String, to newName: String) {
+    private func commitRename(at index: Int, from oldName: String, to newName: String) {
         persistProfileOrderIfNeeded(notify: false)
         let allProfiles = profilesManager.getAllProfiles()
-        guard let target = profilesManager.findProfile(byName: oldName, inProfileArray: allProfiles) else { return }
+        var target: OSCProfile?
+        if index < allProfiles.count, let candidate = allProfiles.object(at: index) as? OSCProfile, candidate.name == oldName {
+            target = candidate
+        } else {
+            target = profilesManager.findProfile(byName: oldName, inProfileArray: allProfiles)
+        }
+        guard let target else {
+            presentMessageAlert(LocalizationHelper.localizedString(forKey: "Failed to rename profile"))
+            profileViewRefresh()
+            return
+        }
         target.name = newName
         profilesManager.persistProfileOrder(allProfiles)
         profileViewRefresh()
@@ -834,14 +847,13 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
 
     /// Shows an OK-only message once nothing else (a closing document picker, another alert) is on screen.
     private func presentMessageAlert(_ message: String, attempts: Int = 20) {
-        if presentedViewController != nil {
+        if presentedViewController != nil || viewIfLoaded?.window == nil {
             guard attempts > 0 else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
                 self?.presentMessageAlert(message, attempts: attempts - 1)
             }
             return
         }
-        guard viewIfLoaded?.window != nil else { return }
         let alert = UIAlertController(title: "", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "OK"), style: .default))
         present(alert, animated: true)
@@ -888,7 +900,11 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
             return
         }
 
-        let exportDirectory = FileManager.default.temporaryDirectory.appendingPathComponent("VLProfileExport", isDirectory: true)
+        removeExportTemporaryFile()
+        // A directory per export, so a stale path can never alias the file being handed to the picker.
+        let exportDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VLProfileExport", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
         let exportURL = exportDirectory.appendingPathComponent(exportFileName(for: scope))
         do {
             try FileManager.default.createDirectory(at: exportDirectory, withIntermediateDirectories: true)
@@ -898,7 +914,6 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
             return
         }
 
-        removeExportTemporaryFile()
         exportTemporaryURL = exportURL
         let picker = UIDocumentPickerViewController(forExporting: [exportURL], asCopy: true)
         picker.delegate = self
@@ -908,7 +923,7 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
 
     private func removeExportTemporaryFile() {
         if let exportTemporaryURL {
-            try? FileManager.default.removeItem(at: exportTemporaryURL)
+            try? FileManager.default.removeItem(at: exportTemporaryURL.deletingLastPathComponent())
         }
         exportTemporaryURL = nil
     }
@@ -938,7 +953,10 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
         case .exportOperation:
             removeExportTemporaryFile()
         case .importOperation:
-            guard let url = urls.first else { return }
+            guard let url = urls.first else {
+                presentMessageAlert(LocalizationHelper.localizedString(forKey: "Failed to import profiles"))
+                return
+            }
             fileToProfiles(url)
         }
     }

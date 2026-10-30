@@ -37,7 +37,10 @@ import UIKit
         controller.loadingMode = pickOnly ? .pickProfile : .selectProfileFromStreamView
         controller.modalPresentationStyle = .overFullScreen
         controller.modalTransitionStyle = .crossDissolve
+        let session = ObjectIdentifier(controller)
         controller.onDismissed = {
+            // The callback hops a run-loop turn, so a newer list may already be on screen.
+            if let current = active, ObjectIdentifier(current) != session { return onClose() }
             active = nil
             onClose()
         }
