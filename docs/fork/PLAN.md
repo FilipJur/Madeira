@@ -78,8 +78,8 @@ flowchart TD
 - [x] Lead review + merge `323e700`; app-check green on `fork/main`. Wave contract placeholders `2a6d04c`.
 
 ### P3 Wave (5 isolated workers, disjoint files; table in TOUCH-PORT.md)
-- [ ] S1 Sink (worker), S2 Host + hooks (ui-worker), S3 Editor (ui-worker), S4 Pickers (ui-worker), S5 Model + Compat (worker). Launched 2026-10-30, shared rules in the lead session (`local://P3-rules.md`).
-- [ ] Lead merges one at a time, app-check after each.
+- [x] S1 Sink (worker), S2 Host + hooks (ui-worker), S3 Editor (ui-worker), S4 Pickers (ui-worker), S5 Model + Compat (worker). Launched 2026-10-30, shared rules in the lead session (`local://P3-rules.md`).
+- [x] Lead merged S3 `7378ddd`, S4 `66adc19`, S1 `bb28734`, S2 `f6d16d5`, S5 `7b17262`; app-check after each. Integration review (reviewer): stuck legacy pad bits across rebuild, first-run profile select before template import, cursor reset on release → fix round `FixG2a`.
 
 ### G2
 - [ ] Lead builds + sideloads; **G2** (user, phone); fix rounds as new workers (`git cherry-pick <base>..omp/task/<name>` first).
