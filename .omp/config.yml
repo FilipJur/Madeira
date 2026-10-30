@@ -1,0 +1,45 @@
+# Fork-only tooling (FilipJur/Madeira, branch fork/main). Never sent upstream. Docs: docs/fork/PARALLEL.md.
+# Three tiers, no prewalk:
+#   1. lead:     default -> Claude Opus 5.5 (any `omp` started in this repo)
+#   2. workers:  worker  -> Muse Spark 1.3 Contributor (model, persistence, input sink, tooling)
+#                ui      -> Claude Sonnet 5.5 (UIKit/SwiftUI widgets, editor, integration)
+#   3. helpers:  task    -> DeepSeek V4.1 Flash (scout, sonic, task); review -> Claude Haiku 5.5 (reviewer)
+# Advisor: Claude Opus 5.5 at medium effort, every 4th worker turn (.omp/WATCHDOG.yml).
+modelRoles:
+  default: anthropic/claude-opus-5-5
+  worker: opencode-go/muse-spark-1.3-contributor
+  ui: anthropic/claude-sonnet-5-5
+  task: opencode-go/deepseek-v4.1-flash
+  smol: opencode-go/deepseek-v4.1-flash
+  review: anthropic/claude-haiku-5-5
+  advisor: anthropic/claude-opus-5-5:medium
+retry:
+  modelFallback: true
+  fallbackChains:
+    worker:
+      - anthropic/claude-sonnet-5-5
+    task:
+      - anthropic/claude-haiku-5-5
+    smol:
+      - anthropic/claude-haiku-5-5
+    review:
+      - opencode-go/deepseek-v4.1-flash
+prewalk:
+  enabled: false
+task:
+  prewalk: false
+  # lead -> worker -> helper; helpers cannot spawn.
+  maxRecursionDepth: 2
+  agentModelOverrides:
+    task: "@task"
+    scout: "@task"
+    sonic: "@task"
+    reviewer: "@review"
+  # Isolated workers commit to omp/task/<name>; nothing is applied to the lead's tree.
+  isolation:
+    merge: branch
+    apply: false
+  # Port workers run 30-90 min; the 200-request default would stop them mid-task.
+  softRequestBudget: 600
+display:
+  subagentLivePreview: true
