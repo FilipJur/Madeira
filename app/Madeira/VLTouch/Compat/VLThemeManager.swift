@@ -1,4 +1,8 @@
-// VLTouch: Compat stub; S5 makes real what the runtime needs.
+// VLTouch: Compat subset of VoidLink's ThemeManager.swift — the members the
+// ported picker code calls. userInterfaceStyle() and appPrimaryColor are
+// verbatim from VoidLink; the trait plumbing (foldable pinning, overrides,
+// system-change propagation) is dropped, each named in the report.
+
 import UIKit
 
 @objcMembers
@@ -6,32 +10,28 @@ final class ThemeManager: NSObject {
 
     static let ThemeDidChangeNotification = "ThemeDidChangeNotification"
 
-    /// Follows the trait collection in effect, falling back to the key window
-    /// when queried outside a trait environment.
+    // VLTouch: no-op — VoidLink pins the style for foldables via
+    // PublicUtils.isFoldableRAMCached; this port has no foldable windows.
+    @objc class func pinsSystemStyleForFoldable() -> Bool {
+        return false
+    }
+
+    // VLTouch: verbatim from VoidLink's ThemeManager.swift:74-77 minus the
+    // pinsSystemStyleForFoldable branch (dropped above): follow the system trait.
     class func userInterfaceStyle() -> UIUserInterfaceStyle {
         if #available(iOS 13.0, *) {
-            let style = UITraitCollection.current.userInterfaceStyle
-            if style != .unspecified {
-                return style
-            }
-            let keyWindow = UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-                .first { $0.isKeyWindow }
-            return keyWindow?.traitCollection.userInterfaceStyle ?? style
+            return PublicUtils.currentScreen.traitCollection.userInterfaceStyle
         }
         return .light
     }
 
-    /// VoidLink's accent (#0A84FF), resolved against the current system trait.
+    // VLTouch: verbatim from VoidLink's ThemeManager.swift:365-372 (#0A84FF, no dark variant).
     static var appPrimaryColor: UIColor {
-        if #available(iOS 13.0, *) {
-            return UIColor { traits in
-                traits.userInterfaceStyle == .dark
-                    ? UIColor(red: 0.20, green: 0.50, blue: 1.0, alpha: 1.0)
-                    : UIColor(red: 0.00, green: 0.48, blue: 1.0, alpha: 1.0)
-            }
-        }
-        return UIColor(red: 0.00, green: 0.48, blue: 1.0, alpha: 1.0)
+        return UIColor(
+            red: 0.0,
+            green: 0.48,
+            blue: 1.0,
+            alpha: 1.0
+        ) // #0A84FF
     }
 }
