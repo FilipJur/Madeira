@@ -17,7 +17,7 @@ Owner: Filip (user). Lead: omp session started in `~/Developer/Madeira`. Fork-on
 | VoidLink source | `The-Fried-Fish/VoidLink-previously-moonlight-zwm`, branch `Integration` @ `fa42805997b7f82f1a9dc04d72e149cde4ebd07b` (GPL-3.0-only; Madeira is GPL-3.0-or-later → combined work GPL-3.0; most VoidLink headers say "All rights reserved" → fine for personal use, resolve before publishing) |
 | Build host | MacBook Air M4, 10 cores, 16 GB, macOS 27.0.1, Xcode 27.2; ~67 GB free after clone |
 | Device | iPhone 15 Pro, iOS 27.0.1, free Apple ID (7-day profiles; increased-memory yes, extended-virtual-addressing no), JIT via StikDebug / in-app pairing |
-| Installed app | Madeira v0.1.3 via sideload; Esoteric Ebb fails with `launch-client-error=28` (likely fixed on main: "Fix Dock launches when Steam launch entries do not start at zero"); Disco Elysium killed at ~6,120 MB (iOS limit ~6,144 MB) |
+| Installed app | Madeira v0.1.3, bundle ID `com.willfaust.madeora.BJL26V87ND`, installed by SideInstaller 1.6.2 (appends team suffix `BJL26V87ND` to the IPA's `com.willfaust.madeora`; reinstalling our IPA through SideInstaller keeps the ID and data). Mac has no signing identities; signing happens in SideInstaller. Esoteric Ebb fails with `launch-client-error=28` (likely fixed on main: "Fix Dock launches when Steam launch entries do not start at zero"); Disco Elysium killed at ~6,120 MB (iOS limit ~6,144 MB) |
 
 Research: `docs/fork/research/madeira-recon.md`, `docs/fork/research/voidlink-recon.md`.
 
@@ -55,17 +55,17 @@ flowchart TD
 ### P0 Setup (lead)
 - [x] Fork `FilipJur/Madeira`, clone with submodules to `~/Developer/Madeira`, `upstream` remote, branch `fork/main`.
 - [x] `.omp/` config, agents, watchdog; `docs/fork/PARALLEL.md`, this plan, research reports.
-- [ ] User restarts omp in `~/Developer/Madeira`; verify `omp config get modelRoles`, isolation settings.
-- [ ] Smoke one isolated `worker` on a one-line docs change: branch `omp/task/<name>` with one commit, `fork/main` untouched, Muse model, advisor log present, clone contains submodules + ignored dirs, `df` shows near-zero clone cost. Delete the smoke branch.
+- [x] User restarts omp in `~/Developer/Madeira`; verify `omp config get modelRoles`, isolation settings.
+- [x] Smoke isolated `worker` (2026-10-30): branch `omp/task/SmokeP0a` with one signed-off commit, `fork/main` untouched, model `muse-spark-1.3-contributor`, advisor note present, clone has submodules, clone cost ≈20 MB (APFS). Branch deleted. Clones live in `~/.omp/wt/<id>/m`.
 
 ### P1 Baseline build + research (parallel)
-- [ ] Lead: `./tools/build-ipa.sh` unchanged, background job, overnight, plugged in. Record wall time and disk peak.
-- [ ] Lead: read installed app's bundle ID (`xcrun devicectl device info apps`); sign/sideload the new IPA under the same bundle ID and team so Steam login + downloads survive.
-- [ ] R1 scout: VoidLink dependency closure for the port subset; per-file keep/stub/drop; storyboard/xib/asset/localization needs.
-- [ ] R2 scout: Madeira sink capabilities: `winios_pointer` flags (relative vs absolute move, wheel, middle, X1/X2), `winios_post_key` VK coverage and modifiers, HID DualSense touchpad path, existing gyro support. If relative mouse/wheel is missing, the change lands in the Wine driver — flag before P3.
-- [ ] R3 scout: overlay hosting and lifecycle: `TouchControlsHost`/`ControlsWindow`, session start/stop, menu suspension, per-game `controlLayout`, where a settings toggle belongs.
-- [ ] R4 scout: how BCD (`thebcd69/bcd-games`) hooks `BCDTouch*` into ContentView; copy the hook shape (not code without §7 attribution).
-- [ ] Lead: `docs/fork/TOUCH-PORT.md` = file map, final P3 slicing, sink contract.
+- [ ] Lead: `JOBS=4 ./tools/build-ipa.sh` unchanged (Homebrew deps installed 2026-10-30), background job, log + disk samples in `~/Library/Logs/madeira-build/<ts>.{log,disk}`. Record wall time and disk peak.
+- [x] Lead: installed bundle ID read (see Facts). Sideload the new IPA through SideInstaller so the ID resolves to the same `com.willfaust.madeora.BJL26V87ND`.
+- [x] R1 scout → `research/r1-voidlink-deps.md`.
+- [x] R2 scout → `research/r2-madeira-sinks.md`. No Wine-driver change needed.
+- [x] R3 scout → `research/r3-overlay-host.md`.
+- [x] R4 scout → `research/r4-bcd-hook.md`.
+- [x] Lead: `docs/fork/TOUCH-PORT.md` drafted. Proposes replacing P2/P3 below with compile-first import + 5-slice wave; pending user approval (D1-D4).
 - [ ] **G1** (user, phone): Esoteric Ebb launch, Disco Elysium, current touch controls on the self-built main.
 
 ### P2 Contract (1 worker, Muse)
