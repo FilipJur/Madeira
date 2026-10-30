@@ -352,8 +352,5 @@ void VLLiReleaseAllHeldInputs(void) {
             default: break;
         }
     }
-    pthread_mutex_lock(&gHeldLock);
-    gMoveAsPositionX = 0;
-    gMoveAsPositionY = 0;
-    pthread_mutex_unlock(&gHeldLock);
+    // gMoveAsPositionX/Y is the ABSMOUSE virtual cursor position, not held input: keep it.
 }
