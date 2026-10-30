@@ -4183,6 +4183,7 @@ struct TouchControlsOverlay: View {
     @ObservedObject private var m = TouchControlsModel.shared
     @ObservedObject private var library = LibraryModel.shared
     @ObservedObject private var zones = GestureZonesModel.shared
+    @ObservedObject private var vlModal = VLTouchModal.shared   // VLTouch
     @State private var pinchBase: Double?
 
     var body: some View {
@@ -4222,6 +4223,7 @@ struct TouchControlsOverlay: View {
             .onChange(of: m.selected) { _, new in if new != nil { zones.selected = nil } }
             .onChange(of: m.editing) { _, _ in configureGamepad(landscape: landscape) }
             .onChange(of: library.blocksGameplayTouch) { _, _ in configureGamepad(landscape: landscape) }
+            .onChange(of: vlModal.open) { _, _ in configureGamepad(landscape: landscape) }
             .onDisappear { GamepadInput.shared.configureTouch(controls: []); TouchMouseGate.padOverlay = false }
         }
         .ignoresSafeArea()
@@ -4257,7 +4259,7 @@ struct TouchControlsOverlay: View {
                 + (GestureZonesModel.enabled ? zones.zones.filter(\.feedsPad).map(\.id) : []) : []
         // Menus and the control editor keep the pad connected but take no input (#204);
         // a touch that misses the controls is no mouse only while they do (#150).
-        let accepting = !m.editing && !library.blocksGameplayTouch && !VLTouchHost.modalOpen
+        let accepting = !m.editing && !library.blocksGameplayTouch && !vlModal.open
         GamepadInput.shared.configureTouch(controls: Set(ids), acceptingInput: accepting)
         TouchMouseGate.padOverlay = accepting && !ids.isEmpty
     }

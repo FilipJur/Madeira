@@ -68,7 +68,7 @@ final class VLTouchHost: NSObject, OnScreenWidgetView.OnScreenFunctionalWidgetDe
     // MARK: Presenting the editor and the pickers
 
     /// An editor or picker is on screen: the widgets are gone and the pad takes no input.
-    @MainActor private(set) static var modalOpen = false
+    @MainActor static var modalOpen: Bool { VLTouchModal.shared.open }
 
     /// The controls window's root view controller: the overlay's own window, above the game and
     /// below the keyboard and the launch curtain.
@@ -83,10 +83,9 @@ final class VLTouchHost: NSObject, OnScreenWidgetView.OnScreenFunctionalWidgetDe
     /// changed profile when it closes.
     @MainActor static func open(_ present: (_ root: UIViewController, _ onClose: @escaping () -> Void) -> Void) {
         guard !modalOpen, VLTouchSwitch.active, let root = controlsRoot(), root.presentedViewController == nil else { return }
-        modalOpen = true
+        VLTouchModal.shared.open = true   // TouchControlsOverlay re-runs configureGamepad: no pad input meanwhile
         VLTouchLayer.suspend()
         VLSink.releaseAll()
-        GamepadInput.shared.configureTouch(controls: [VLSink.control], acceptingInput: false)
         present(root) { closed() }
         // A presenter that put nothing on screen would leave the widgets gone for good.
         if root.presentedViewController == nil { closed() }
@@ -94,14 +93,10 @@ final class VLTouchHost: NSObject, OnScreenWidgetView.OnScreenFunctionalWidgetDe
 
     @MainActor private static func closed() {
         guard modalOpen else { return }
-        modalOpen = false
+        VLTouchModal.shared.open = false
         // The picker may have changed the selected profile: it belongs to the game from now on.
         LibraryModel.shared.saveCurrentProfile()
         VLTouchLayer.resume()
-        if VLTouchSwitch.active {
-            GamepadInput.shared.configureTouch(controls: [VLSink.control],
-                                               acceptingInput: !LibraryModel.shared.blocksGameplayTouch)
-        }
     }
 
     /// The session menu's rows: same flows as the widgets' own buttons.
@@ -116,6 +111,12 @@ final class VLTouchHost: NSObject, OnScreenWidgetView.OnScreenFunctionalWidgetDe
         while let next = top?.presentedViewController { top = next }
         if let top { VLEditorPresenter.present(from: top, onClose: {}) }
     }
+}
+
+/// Observable so the overlay re-registers the pad (`configureGamepad`) when an editor or picker opens or closes.
+@MainActor final class VLTouchModal: ObservableObject {
+    static let shared = VLTouchModal()
+    @Published fileprivate(set) var open = false
 }
 
 /// The `touch-system` choice. Without an entry it is the global key in madeira.cfg (Settings);
