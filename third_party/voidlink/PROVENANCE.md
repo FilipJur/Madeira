@@ -26,6 +26,8 @@ VoidLink is GPL-3.0-only; Madeira is GPL-3.0-or-later, so the combined work is G
 | VoidLink/Images.xcassets/ChevronCompactUp.imageset/chevron_compact_up@2x.png | 1ecebbe46c920b206de4ee66bc0636f1280224b2 |
 | VoidLink/Images.xcassets/ChevronCompactUp.imageset/chevron_compact_up@3x.png | fc287c473f78ea615e7b6a513a87c2a51c24ca85 |
 | VoidLink/Images.xcassets/ChevronCompactUp.imageset/Contents.json | 2e6fba06d4f4a752d33426b70fc418560e9a837a |
+| VoidLink/Images.xcassets/rectangle.and.pencil.and.ellipsis.imageset/Contents.json | 80581b37bba642c7dc3263425bdff055bdc39b61 |
+| VoidLink/Images.xcassets/rectangle.and.pencil.and.ellipsis.imageset/rectangle.and.pencil.and.ellipsis.svg | f34fb360a57e752f3b3ad1479f4893ba9a2535cb |
 | VoidLink/Input/AbstractGamepadOverlayWidgetView.swift | 475f4695a6e8da2038691901e811f123109e3820 |
 | VoidLink/Input/CommandManager.swift | 28159e1c74bbc45934f097b81cc9a753a04d5ea6 |
 | VoidLink/Input/ControllerNavigator.swift | c008011e178097815f6a2ae1de1001cbe0fb9b07 |
