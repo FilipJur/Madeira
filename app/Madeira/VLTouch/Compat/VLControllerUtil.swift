@@ -50,6 +50,7 @@ import GameController
     /// paths. Despite the name it is NOT set by physical-pad arrival — with
     /// Madeira the virtual pad is always connected while VLTouch is active, so
     /// the widget code setting it on input is the real signal.
+    @objc static var gamepadArrivalReported: Bool = false
 
     // MARK: - physical pads (GameController framework, read-only mirror)
 
