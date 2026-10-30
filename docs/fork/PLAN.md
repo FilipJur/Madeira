@@ -59,7 +59,7 @@ flowchart TD
 - [x] Smoke isolated `worker` (2026-10-30): branch `omp/task/SmokeP0a` with one signed-off commit, `fork/main` untouched, model `muse-spark-1.3-contributor`, advisor note present, clone has submodules, clone cost ≈20 MB (APFS). Branch deleted. Clones live in `~/.omp/wt/<id>/m`.
 
 ### P1 Baseline build + research (parallel)
-- [ ] Lead: `JOBS=4 ./tools/build-ipa.sh` unchanged (Homebrew deps installed 2026-10-30), background job, log + disk samples in `~/Library/Logs/madeira-build/<ts>.{log,disk}`. Record wall time and disk peak.
+- [x] Lead: `JOBS=4 ./tools/build-ipa.sh` unchanged (Homebrew deps installed 2026-10-30). Wall ≈65 min (54 min, then a resume of `runtime-components.py build all` → `wine-i386` → `package-ipa.sh` in 11 min after the sleep/CLT fixes). Disk 66.8 → 49.2 GB free (−17.6 GB incl. `app/DerivedData`). Output `dist/Madeira.ipa` 206,489,673 B, sha256 `9dba863a0e51e693…`, `com.willfaust.madeora` 0.1.3 (4) + `.JITHelper`, "Validated complete IPA". Build leaves ~530 tracked prebuilt binaries rewritten, untracked DLLs/licence, and `dxmt` modified: expected, never commit them. Logs `~/Library/Logs/madeira-build/20261030-1733*.log`.
 - [x] Lead: installed bundle ID read (see Facts). Sideload the new IPA through SideInstaller so the ID resolves to the same `com.willfaust.madeora.BJL26V87ND`.
 - [x] R1 scout → `research/r1-voidlink-deps.md`.
 - [x] R2 scout → `research/r2-madeira-sinks.md`. No Wine-driver change needed.
