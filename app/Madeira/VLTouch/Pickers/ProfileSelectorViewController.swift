@@ -147,6 +147,9 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
     @nonobjc var pickedProfileDataHandler: ((OSCProfile) -> Void)?
     weak var currentOSCButtonLayers: NSMutableSet?
     var layoutViewBounds: CGRect = .zero
+    /// VLTouch: runs once after this controller leaves the screen (set by `VLProfilePresenter`).
+    var onDismissed: (() -> Void)?
+    private var didReportDismissal = false
 
     private var profilesManager: OSCProfilesManager!
     private var horizontalConstraintsConfigured = false
@@ -226,6 +229,18 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
             presentationWindow?.isHidden = true
             presentationWindow = nil
         }
+        // VLTouch: a document picker or alert covering this controller also lands here, so only a real dismissal reports.
+        if isBeingDismissed || navigationController?.isBeingDismissed == true || presentingViewController == nil {
+            reportDismissalOnce()
+        }
+    }
+
+    private func reportDismissalOnce() {
+        guard !didReportDismissal else { return }
+        didReportDismissal = true
+        let callback = onDismissed
+        onDismissed = nil
+        callback?()
     }
     
     override func viewDidLoad() {
@@ -233,6 +248,12 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
 
         profilesManager = OSCProfilesManager.sharedManager(layoutViewBounds)
         observeThemeChanges()
+        // VLTouch: Madeira never posts ThemeManager's notification; follow the trait collection instead.
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+                self.handleThemeDidChange()
+            }
+        }
         setupProfilePanel()
         updateHorizontalLayoutConstraints()
         horizontalConstraintsConfigured = true
@@ -251,6 +272,10 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
 
     deinit {
         removeThemeObserver()
+        // VLTouch: a parent dismissed together with this controller may never send viewDidDisappear for it.
+        if !didReportDismissal, let callback = onDismissed {
+            DispatchQueue.main.async { callback() }
+        }
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -464,6 +489,11 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
     }
 
     private func currentUserInterfaceStyle() -> UIUserInterfaceStyle {
+        // VLTouch: the controller's own traits track Madeira's window style; ThemeManager is a stub here.
+        let style = traitCollection.userInterfaceStyle
+        if style != .unspecified {
+            return style
+        }
         if #available(iOS 13.0, *) {
             return ThemeManager.userInterfaceStyle()
         }
