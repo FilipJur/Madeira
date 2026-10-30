@@ -550,6 +550,14 @@ OVERLAY = {
                 "choices": [("", "On (default)"), ("hid", "DualSense output only"), ("xinput", "XInput rumble only"),
                             ("0", "Off")],
                 "sources": ["app/Madeira/GamepadInput.swift", "app/Madeira/PadOutput.m"]},
+    # fork: VLTouch widget system (app/Madeira/VLTouch).
+    "touch-system": {"category": "Controllers", "title": "Touch controls", "kind": "choice",
+                "default": "madeira",
+                "choices": [("madeira", "Madeira (default)"), ("voidlink", "VoidLink widgets")],
+                "note": "Madeira (default): the built-in touch gamepad. VoidLink widgets: the ported VoidLink "
+                        "on-screen widget system (profiles, macros, layout editor). Nothing reads it yet (S2 hooks "
+                        "the overlay).",
+                "sources": ["app/Madeira/VLTouch/Host/VLTouchSwitch.swift"]},
     "env.MADEIRA_PROMOTE": {"title": "Hold the display at its maximum rate"},
     # madeira-bcd: GTA V Enhanced's Social Club (StikJITHelper.swift, process_ios.c, virtual_ios.c).
     "pool-split": {"category": "Memory & JIT pool", "title": "Split JIT pool around the main thread's stack",

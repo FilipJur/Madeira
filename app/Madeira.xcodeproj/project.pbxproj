@@ -230,6 +230,7 @@
 		A2000F67 /* widgetTemplatesIPhone.bin in Resources */ = {isa = PBXBuildFile; fileRef = A2000F66 /* widgetTemplatesIPhone.bin */; };
 		A2000F69 /* VLTouch.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000F68 /* VLTouch.xcstrings */; };
 		A2000F6B /* VLTouch.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000F6A /* VLTouch.xcassets */; };
+		A2000F76 /* VLTouchSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000F75 /* VLTouchSwitch.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -517,6 +518,7 @@
 		A2000F64 /* widgetTemplates.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "widgetTemplates.bin"; sourceTree = "<group>"; };
 		A2000F66 /* widgetTemplatesIPhone.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = "widgetTemplatesIPhone.bin"; sourceTree = "<group>"; };
 		A2000F68 /* VLTouch.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = "VLTouch.xcstrings"; sourceTree = "<group>"; };
+		A2000F75 /* VLTouchSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VLTouchSwitch.swift"; sourceTree = "<group>"; };
 		A2000F6A /* VLTouch.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = VLTouch.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -817,6 +819,7 @@
 				A2000F72 /* Support */,
 				A2000F73 /* Compat */,
 				A2000F74 /* Sink */,
+				A2000F77 /* Host */,
 				A2000F6A /* VLTouch.xcassets */,
 			);
 			path = VLTouch;
@@ -934,6 +937,14 @@
 				A2000F5B /* VLLiShim.h */,
 			);
 			path = Sink;
+			sourceTree = "<group>";
+		};
+		A2000F77 /* Host */ = {
+			isa = PBXGroup;
+			children = (
+				A2000F75 /* VLTouchSwitch.swift */,
+			);
+			path = Host;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1256,6 +1267,7 @@
 				A2000F4F /* OnScreenWidgetView.swift in Sources */,
 				A2000F51 /* SafeTimer.swift in Sources */,
 				A2000F53 /* UITouchUtil.swift in Sources */,
+				A2000F76 /* VLTouchSwitch.swift in Sources */,
 				B1000001 /* JITSetup.swift in Sources */,
 				B1000050 /* JITNetwork.swift in Sources */,
 				B1000002 /* JITBuiltInHost.swift in Sources */,
