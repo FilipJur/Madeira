@@ -129,6 +129,11 @@ static void VLMouseButtonUp(int button, unsigned int flags, unsigned int data) {
 // Expand the Moonlight modifiers byte into generic modifier VK down/up pairs
 // around the key itself. Modifiers are also tracked so releaseAll frees them
 // when a widget is torn down mid-chord.
+// 0xFF is VoidLink's "no key" sentinel (CommandManager "NULL" entry, picker
+// placeholders, mouse-button table WHEELUP/WHEELDOWN handled one row up in
+// the widget). Never post it: Moonlight drops unknown buttons the same way
+// (LiSendMouseButtonEvent default: no-op), and 0xFF has no VK lane.
+#define VL_VK_NONE 0xFF
 static void VLPostKeyWithModifiers(int vk, int down, char modifiers) {
     char mods = (char)(modifiers & (VL_MODIFIER_SHIFT | VL_MODIFIER_CTRL | VL_MODIFIER_ALT | VL_MODIFIER_META));
     int modVKs[4];
@@ -140,11 +145,11 @@ static void VLPostKeyWithModifiers(int vk, int down, char modifiers) {
     if (down) {
         for (int i = 0; i < modCount; i++) VLPostKeyDown(modVKs[i]);
         VLPostKeyDown(vk);
-        for (int i = 0; i < modCount; i++) VLPostKeyUp(modVKs[i]);
+        for (int i = modCount - 1; i >= 0; i--) VLPostKeyUp(modVKs[i]);
     } else {
         for (int i = 0; i < modCount; i++) VLPostKeyDown(modVKs[i]);
         VLPostKeyUp(vk);
-        for (int i = 0; i < modCount; i++) VLPostKeyUp(modVKs[i]);
+        for (int i = modCount - 1; i >= 0; i--) VLPostKeyUp(modVKs[i]);
     }
 }
 
@@ -152,9 +157,11 @@ int LiSendKeyboardEvent(short keyCode, char keyAction, char modifiers) {
     // Callers pass either a bare VK (CommandManager tables, OnScreenWidgetView
     // direct VK posts) or, for physical-keyboard events, VK with Moonlight's
     // 0x8000 flag bit set (KeyboardSupport.m convention). Strip any flag bits
-    // so only the VK reaches winios_post_key.
+    // so only the VK reaches winios_post_key. 0xFF ("NULL" sentinel in
+    // keyboard/mouse tables, picker placeholders) is dropped.
     int vk = ((int)keyCode) & 0xFFFF;
     vk &= ~0x8000;
+    if (vk == VL_VK_NONE) return 0;
     int down = (keyAction == KEY_ACTION_DOWN) ? 1 : 0;
     VLPostKeyWithModifiers(vk, down, modifiers);
     return 0;
@@ -198,6 +205,19 @@ int LiSendMouseMoveEvent(short deltaX, short deltaY) {
 // (OnScreenWidgetView passes view points with superViewWidth/Height);
 // queue_ios.c:2314-2321 takes absolute positions in guest screen pixels,
 // so scale by the live desktop size, not by 65535.
+
+// Mirror of Moonlight's virtual-cursor clamp: MoveAsPosition reports which
+// reference-plane edge the virtual cursor hit (bit 0 = x edge, bit 1 = y
+// edge) so the ABSMOUSE widget can re-center; see the reachedEdgeMask use in
+// OnScreenWidgetView (ABSMOUSE case). Tracked in reference-plane units, like
+// Moonlight, so the mask matches what the widget expects from its own plane.
+// Upstream moves the cursor on both Position and MoveAsPosition calls; the
+// Position write-back below is what keeps the widget's re-centre working.
+// Guarded by gHeldLock (moves arrive on a widget global queue, the re-centre
+// Position on another thread).
+static int gMoveAsPositionX = 0;
+static int gMoveAsPositionY = 0;
+
 static void VLPostAbsolutePosition(double x, double y, short referenceWidth, short referenceHeight) {
     int deskW = 0, deskH = 0;
     winios_screen_size(&deskW, &deskH);
@@ -226,22 +246,35 @@ static void VLPostAbsolutePosition(double x, double y, short referenceWidth, sho
 
 int LiSendMousePositionEvent(short x, short y, short referenceWidth, short referenceHeight) {
     VLPostAbsolutePosition((double)x, (double)y, referenceWidth, referenceHeight);
+    // Upstream moves its virtual cursor on both Position and MoveAsPosition,
+    // and the ABSMOUSE widget re-centres through this call
+    // (OnScreenWidgetView reaches (w/2, h/2) after an edge mask). Mirror it:
+    // without this the next move starts from the clamped edge and sticks.
+    if (referenceWidth > 1 && referenceHeight > 1) {
+        pthread_mutex_lock(&gHeldLock);
+        int cx = (int)x, cy = (int)y;
+        if (cx < 0) cx = 0;
+        else if (cx >= referenceWidth) cx = (int)referenceWidth - 1;
+        if (cy < 0) cy = 0;
+        else if (cy >= referenceHeight) cy = (int)referenceHeight - 1;
+        gMoveAsPositionX = cx;
+        gMoveAsPositionY = cy;
+        pthread_mutex_unlock(&gHeldLock);
+    }
     // Contract mirrors Moonlight: 0 accepted. (The move-as-position variant
     // below is the one whose edge mask the ABSMOUSE widget reads.)
     return 0;
 }
 
-// Mirror of Moonlight's virtual-cursor clamp: MoveAsPosition reports which
-// reference-plane edge the virtual cursor hit (bit 0 = x edge, bit 1 = y
-// edge) so the ABSMOUSE widget can re-center; see the reachedEdgeMask use in
-// OnScreenWidgetView (ABSMOUSE case). Tracked in reference-plane units, like
-// Moonlight, so the mask matches what the widget expects from its own plane.
-static int gMoveAsPositionX = 0;
-static int gMoveAsPositionY = 0;
 
 int LiSendMouseMoveAsMousePositionEvent(short deltaX, short deltaY, short referenceWidth, short referenceHeight) {
     int edgeMask = 0;
+    int cursorX = 0, cursorY = 0;
     if (referenceWidth > 1 && referenceHeight > 1) {
+        // The widget drives moves from a global queue while the re-centre
+        // Position call may land on another thread: hold one lock across the
+        // read-modify-clamp so the cursor never tears.
+        pthread_mutex_lock(&gHeldLock);
         gMoveAsPositionX += (int)deltaX;
         gMoveAsPositionY += (int)deltaY;
         int maxX = (int)referenceWidth - 1;
@@ -250,7 +283,10 @@ int LiSendMouseMoveAsMousePositionEvent(short deltaX, short deltaY, short refere
         else if (gMoveAsPositionX >= referenceWidth) { gMoveAsPositionX = maxX; edgeMask |= 0x01; }
         if (gMoveAsPositionY < 0) { gMoveAsPositionY = 0; edgeMask |= 0x02; }
         else if (gMoveAsPositionY >= referenceHeight) { gMoveAsPositionY = maxY; edgeMask |= 0x02; }
-        VLPostAbsolutePosition((double)gMoveAsPositionX, (double)gMoveAsPositionY, referenceWidth, referenceHeight);
+        cursorX = gMoveAsPositionX;
+        cursorY = gMoveAsPositionY;
+        pthread_mutex_unlock(&gHeldLock);
+        VLPostAbsolutePosition((double)cursorX, (double)cursorY, referenceWidth, referenceHeight);
     } else {
         // Degenerate plane: Moonlight returns -3; still post the delta as a
         // relative move so input is not lost.
@@ -316,6 +352,8 @@ void VLLiReleaseAllHeldInputs(void) {
             default: break;
         }
     }
+    pthread_mutex_lock(&gHeldLock);
     gMoveAsPositionX = 0;
     gMoveAsPositionY = 0;
+    pthread_mutex_unlock(&gHeldLock);
 }
