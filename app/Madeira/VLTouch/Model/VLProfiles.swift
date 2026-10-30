@@ -26,9 +26,15 @@ import UIKit
         return result
     }
 
-    /// Name of the selected profile.
+    /// Name of the selected profile, or nil when the store is empty. Read-only:
+    /// the first-run import lives in `prepare` only — unlike VoidLink's
+    /// `getSelectedProfile`, this never imports and never force-indexes.
     static var selectedName: String? {
-        OSCProfilesManager.sharedManager(.zero).getSelectedProfile().name
+        let profiles = OSCProfilesManager.sharedManager(.zero).getAllProfiles()
+        for case let profile as OSCProfile in profiles where profile.isSelected {
+            return profile.name
+        }
+        return (profiles.firstObject as? OSCProfile)?.name
     }
 
     /// Selects the profile called `name` and persists the selection; false when
