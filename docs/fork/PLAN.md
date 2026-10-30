@@ -69,16 +69,16 @@ flowchart TD
 - [ ] **G1** (user, phone): Esoteric Ebb launch, Disco Elysium, current touch controls on the self-built main.
 
 ### P2 Import, compile-first (1 worker + parallel helpers; needs P1 native libs to link)
-- [ ] `third_party/voidlink/` = port-subset files verbatim at `fa42805` + `LICENSE.txt` + `PROVENANCE.md`.
-- [ ] Copy into `app/Madeira/VLTouch/`, edits limited to import lines, storyboard module, `ProfileFileContainer` move, each tagged `// VLTouch:`.
-- [ ] Compat stubs, `VLLiShim` + `ControllerSupport` façade with no-op bodies; `GraphicUtils` on `CAShapeLayer` (D2); English-only `VLTouch.xcstrings` (D3).
-- [ ] Register everything in `project.pbxproj`, bridging header, resources (`.bin`, `VLEditor.storyboard`, imagesets).
-- [ ] `touch-system` key (default `madeira`) + catalog regen; nothing hooked.
-- [ ] `tools/fork/app-check.sh`: app target only, `CODE_SIGNING_ALLOWED=NO`, per-clone DerivedData under `/tmp`, machine-wide lock (max 2 concurrent).
-- [ ] Lead review + merge; app-check green on `fork/main`.
+- [x] `third_party/voidlink/` = port-subset files verbatim at `fa42805` + `LICENSE.txt` + `PROVENANCE.md` (67 files, hash-verified).
+- [x] Copy into `app/Madeira/VLTouch/`, edits limited to import lines, storyboard module, `ProfileFileContainer` move, each tagged `// VLTouch:` (79 markers).
+- [x] Compat stubs, `VLLiShim` + `ControllerSupport` façade with no-op bodies; `GraphicUtils` on `CAShapeLayer` (D2); English-only `VLTouch.xcstrings` (D3).
+- [x] Register everything in `project.pbxproj`, bridging header, resources (`.bin`, `VLEditor.storyboard`, imagesets). Gap: `rectangle.and.pencil.and.ellipsis` imageset (S3).
+- [x] `touch-system` key (default `madeira`) + catalog regen; nothing hooked.
+- [x] `tools/fork/app-check.sh` (≈10-30 s warm on `fork/main`).
+- [x] Lead review + merge `323e700`; app-check green on `fork/main`. Wave contract placeholders `2a6d04c`.
 
 ### P3 Wave (5 isolated workers, disjoint files; table in TOUCH-PORT.md)
-- [ ] S1 Sink (worker), S2 Host + hooks (ui-worker), S3 Editor (ui-worker), S4 Pickers (ui-worker), S5 Model + Compat (worker).
+- [ ] S1 Sink (worker), S2 Host + hooks (ui-worker), S3 Editor (ui-worker), S4 Pickers (ui-worker), S5 Model + Compat (worker). Launched 2026-10-30, shared rules in the lead session (`local://P3-rules.md`).
 - [ ] Lead merges one at a time, app-check after each.
 
 ### G2
