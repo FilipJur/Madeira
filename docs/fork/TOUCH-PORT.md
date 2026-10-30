@@ -1,6 +1,6 @@
 # VLTouch port: file map, sink contract, slicing
 
-Lead document, fork only. Inputs: `research/r1-voidlink-deps.md` (R1), `r2-madeira-sinks.md` (R2), `r3-overlay-host.md` (R3), `r4-bcd-hook.md` (R4), all 2026-10-30 against Madeira `fork/main` `67bd667`, VoidLink `fa42805`, BCD `05e9f6f`. Status: **draft, needs user approval of the "Changes to PLAN.md" section before P2.**
+Lead document, fork only. Inputs: `research/r1-voidlink-deps.md` (R1), `r2-madeira-sinks.md` (R2), `r3-overlay-host.md` (R3), `r4-bcd-hook.md` (R4), all 2026-10-30 against Madeira `fork/main` `67bd667`, VoidLink `fa42805`, BCD `05e9f6f`. Status: D1-D3 decided by user 2026-10-30; D4 pending.
 
 ## Verdicts
 
@@ -51,14 +51,14 @@ Verdicts from R1 §1. Paths: VoidLink `VoidLink/…` → `app/Madeira/VLTouch/�
 | Widgets/runtime | `OnScreenWidgetView.swift`, `OnScreenControls.{h,m}` (trim legacy draw), `LayoutOnScreenControls.{h,m}`, `MotionHandler.swift`, `InertialScroller.swift`, `SafeTimer.swift`, `UITouchUtil.swift`, `CustomTapGestureRecognizer.{h,m}`, `AbstractGamepadOverlayWidgetView.swift`, 6 SVGs | ~9.5k |
 | Editor | `LayoutOnScreenControlsViewController.swift`, `WidgetPanelStackView.{h,m}`, `ToolBarContainerView.{h,m}`, `VLEditor.storyboard` (scene from `iPhone`/`iPad.storyboard`), 2 imagesets | ~2.7k |
 | Pickers | `ProfileSelectorViewController.swift`, `WidgetPickerViewController.swift`, `WidgetPickerView.swift`, `AbstractGamepadView.swift`, `VirtualKeyboardView.swift` | ~10.5k |
-| Support (real) | `LocalizationHelper.{h,m}` + Swift ext (table renamed `VLTouch`), `VLTouch.xcstrings` (997 keys), `PublicExtensions.swift`, `AlertControllerUtil.swift`, `GraphicUtils.swift` | ~0.7k |
-| Compat stubs | `PublicUtils` (~24 members), `GenericUtils` (13, tips → no-op), `ControllerUtil` (5), `ThemeManager` (3), `DataManager`, `StreamConfiguration`, `VoidController`, `StreamFrameViewController` flags, `PencilHandler`, `PressureCurve`, `MicHandler`, `ToolboxViewController`, `ControllerNavigator` (if `RadialMenuOverlayView` stays) | new, small |
+| Support (real) | `LocalizationHelper.{h,m}` + Swift ext (table renamed `VLTouch`), `VLTouch.xcstrings` (997 keys, **English values only**, D3), `PublicExtensions.swift`, `AlertControllerUtil.swift`, `GraphicUtils.swift` (SVGKit replaced by `CAShapeLayer` paths, D2) | ~0.7k |
+| Compat stubs | `PublicUtils` (~24 members), `GenericUtils` (13, tips → no-op), `ControllerUtil` (5), `ThemeManager` (3), `DataManager`, `StreamConfiguration`, `VoidController`, `StreamFrameViewController` flags, `PencilHandler`, `PressureCurve`, `MicHandler`, `ToolboxViewController`, `ControllerNavigator` + `ControllerNavigationElement` (API stub: `setUINavigationDelegate`, `restorePreviousUINavigationDelegate`, `radialMenuButtonPosition`) | new, small |
 | Sink | `ControllerSupport.h` (façade), `VLLiShim.{h,m}` (Li* + constants) | new |
 | Dropped | `HapticContext`, `CursorInertia`, `LayoutOnScreenControlsViewController.{h,m}`, `InputAccessoryBar`, `ControllerSupport.m`, `StreamView.*`, `TemporarySettings`, `RadialMenuOverlayView` + `RadialMenuView` (consumer is controller navigation only, R1 §6.4) | |
 
 Total ported ≈ 25k LOC, ~90% verbatim.
 
-## Changes to PLAN.md (need approval)
+## Changes to PLAN.md (approved, D1)
 
 R1 shows the P3 slices are not independently compilable: `OnScreenWidgetView` consumes Model, Commands, Runtime and Sink; the Editor consumes all of those plus Pickers; Model depends on a Pickers file. The planned "stub every API, then 7 workers port in parallel" needs hand-written stubs for hundreds of cross-slice symbols, then each worker swaps a stub for verbatim code and re-fixes the same imports. Proposed instead:
 
@@ -82,11 +82,11 @@ Acceptance: app target builds with all VoidLink code linked; upstream touch cont
 
 `OnScreenWidgetView.swift`, `CommandManager.swift`, `OnScreenControls.m`, `MotionHandler.swift` stay verbatim and unowned in P3; fixes to them happen only in G2 fix rounds, one owner each. Old P4 folds into S2. DS4 touchpad + controller motion become a later phase (they need `GamepadInput.swift` changes).
 
-## Open decisions
+## Decisions
 
-| # | Decision | Options | Lead pick |
-|---|---|---|---|
-| D1 | Restructure P2/P3 as above | approve / keep original 7-slice plan | approve |
-| D2 | SVGKit (SPM + `libxml2`, used only by `GraphicUtils` for 6 SVGs ≤2 KB) | add the package / replace with `CAShapeLayer` paths generated once from the 6 SVGs (~150 LOC, no dependency) | replace |
-| D3 | Localization | ship `VLTouch.xcstrings` (all 997 keys, all languages) / English only | ship all |
-| D4 | `RadialMenuOverlayView` + `ControllerNavigator` (3.6k LOC, controller-navigated radial menu) | drop / port | drop |
+| # | Decision | Result |
+|---|---|---|
+| D1 | Restructure P2/P3 as above | **approved** |
+| D2 | SVGKit (SPM + `libxml2`, used only by `GraphicUtils` for 6 SVGs ≤2 KB) | **no dependency**: `CAShapeLayer` paths generated once from the 6 SVGs (~150 LOC); `changeColor` keeps working on shape layers |
+| D3 | Localization | **English only**: `VLTouch.xcstrings` keeps the `en` value of each key (keys like `=disableTilt` are identifiers, so the English values are required, not the keys) |
+| D4 | `RadialMenuOverlayView` + `RadialMenuView` + full `ControllerNavigator` (≈3.6k LOC): drive VoidLink's own screens with a physical controller | pending; lead pick drop (small `ControllerNavigator` stub stays either way, the picker/profile screens reference its API) |
