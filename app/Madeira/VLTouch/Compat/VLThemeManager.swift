@@ -10,14 +10,9 @@ final class ThemeManager: NSObject {
 
     static let ThemeDidChangeNotification = "ThemeDidChangeNotification"
 
-    // VLTouch: no-op — VoidLink pins the style for foldables via
-    // PublicUtils.isFoldableRAMCached; this port has no foldable windows.
-    @objc class func pinsSystemStyleForFoldable() -> Bool {
-        return false
-    }
-
-    // VLTouch: verbatim from VoidLink's ThemeManager.swift:74-77 minus the
-    // pinsSystemStyleForFoldable branch (dropped above): follow the system trait.
+    // VLTouch: follows the system trait via PublicUtils.currentScreen (VoidLink's
+    // ThemeManager.swift:74-77 does the same on non-foldables; the override state,
+    // _userInterfaceStyle cache, and system-change propagation are dropped).
     class func userInterfaceStyle() -> UIUserInterfaceStyle {
         if #available(iOS 13.0, *) {
             return PublicUtils.currentScreen.traitCollection.userInterfaceStyle

@@ -45,11 +45,11 @@ import GameController
 
     // MARK: - virtual-pad use flag
 
-    /// Set the first time the virtual pad sends stick/button/gyro input; read by
-    /// teardown/cleanup paths. Despite the name it is NOT set by physical-pad
-    /// arrival — with Madeira the virtual pad is always connected while VLTouch
-    /// is active, so the widget code setting it on input is the real signal.
-    @objc static var gamepadArrivalReported: Bool = false
+    /// Set the first time the virtual pad sends stick/button input (gyro input
+    /// sets it only when mapped to a controller stick); read by teardown/cleanup
+    /// paths. Despite the name it is NOT set by physical-pad arrival — with
+    /// Madeira the virtual pad is always connected while VLTouch is active, so
+    /// the widget code setting it on input is the real signal.
 
     // MARK: - physical pads (GameController framework, read-only mirror)
 
