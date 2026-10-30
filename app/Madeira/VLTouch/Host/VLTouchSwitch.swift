@@ -46,7 +46,12 @@ import UIKit
 
     private static func engage(_ entry: LibraryEntry) {
         if savedProfile == nil { savedProfile = .some(VLProfiles.selectedName) }
-        if let name = entry.vlTouchProfile { VLProfiles.select(name: name) }
+        if let name = entry.vlTouchProfile {
+            // Fresh install: the first-run template import must have happened, or select finds nothing.
+            // .zero keeps the layout bounds the container set (OSCProfilesManager.sharedManager).
+            VLProfiles.prepare(bounds: .zero)
+            VLProfiles.select(name: name)
+        }
         active = true
     }
 

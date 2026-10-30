@@ -160,7 +160,9 @@ final class VLTouchContainer: UIView {
         onScreenControls?.setLevel(.off)
         onScreenControls = nil
         hasLegacyWidget = false
-        // A widget that was removed while held must not keep the pad or a key down.
+        // A widget that was removed while held must not keep the pad or a key down. The legacy
+        // pad state goes first, or the next updateFinished would republish the held bits.
+        controllerSupport?.resetState()
         VLSink.releaseAll()
     }
 

@@ -43,6 +43,16 @@
     _rightStickY = y;
 }
 
+- (void)resetState {
+    _buttonFlags = 0;
+    _leftTrigger = 0;
+    _rightTrigger = 0;
+    _leftStickX = 0;
+    _leftStickY = 0;
+    _rightStickX = 0;
+    _rightStickY = 0;
+}
+
 - (void)updateLeftTrigger:(VoidController *)controller left:(unsigned char)left {
     _leftTrigger = left;
 }

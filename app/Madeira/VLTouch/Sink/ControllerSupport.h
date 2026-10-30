@@ -21,6 +21,11 @@
 
 - (void)updateFinished:(VoidController *)controller;
 
+// VLTouch: zero buttons, triggers and sticks without publishing. The host calls it when it
+// discards the OnScreenControls that fed this object, so a later updateFinished: cannot
+// republish bits whose touch-up will never arrive.
+- (void)resetState;
+
 - (void)updateTimerStateForOsc;
 
 - (VoidController *)getOscController;
