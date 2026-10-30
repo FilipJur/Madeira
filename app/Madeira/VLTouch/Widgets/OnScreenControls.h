@@ -9,7 +9,7 @@
 //  Copyright © True砖家 @ Bilibili. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h> // VLTouch: was Foundation-only; CALayer/UIColor need UIKit (VoidLink's prefix header supplied it).
 #import "ControllerSupport.h"
 #if !TARGET_OS_TV
 #import "CustomTapGestureRecognizer.h"

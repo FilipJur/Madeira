@@ -1,5 +1,6 @@
 // VLTouch: Compat stub (D4: controller navigation is dropped, API preserved); S5 makes real what the runtime needs.
 import UIKit
+import Combine // VLTouch: GamepadOverlayStateCenter is an ObservableObject (verbatim from ControllerUtil.swift).
 
 // ControllerUtil's element vocabulary travels with the navigator API here,
 // because the compat ControllerUtil carries only its five functions.
@@ -52,6 +53,33 @@ import UIKit
     case abxy = 0x800023
 
     case null = 0xFFFFFF
+}
+// VLTouch: verbatim field shape from ControllerUtil.swift (minus the live-gamepad init, which S5 owns).
+struct GamepadOverlaySnapshot: Equatable {
+    var pressedButtons: Set<ControllerElement> = []
+    var dpadHighlight: Int = 0
+    var leftStick: CGPoint = .zero
+    var rightStick: CGPoint = .zero
+    var leftTrigger: CGFloat = 0
+    var rightTrigger: CGFloat = 0
+
+    static let idle = GamepadOverlaySnapshot()
+}
+// VLTouch: verbatim shape from ControllerUtil.swift; S5 owns the live publisher.
+final class GamepadOverlayStateCenter: NSObject, ObservableObject {
+    static let shared = GamepadOverlayStateCenter()
+
+    @Published private(set) var snapshot: GamepadOverlaySnapshot = .idle
+
+    func publish(snapshot: GamepadOverlaySnapshot) {
+        DispatchQueue.main.async {
+            self.snapshot = snapshot
+        }
+    }
+
+    static func clearSharedState() {
+        shared.publish(snapshot: .idle)
+    }
 }
 
 @objcMembers

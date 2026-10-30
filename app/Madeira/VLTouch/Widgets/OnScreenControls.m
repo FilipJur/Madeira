@@ -563,7 +563,7 @@ static float L3_Y;
             
             break;
         default:
-            Log(LOG_W, @"Unknown on-screen controls level: %d", (int)_level);
+            NSLog(@"Unknown on-screen controls level: %d", (int)_level); // VLTouch: was Log(LOG_W, ...) via VoidLink's Logger.h (dropped; NSLog matches its release behavior).
             break;
     }
     

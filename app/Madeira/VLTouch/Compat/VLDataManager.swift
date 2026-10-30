@@ -8,6 +8,25 @@ final class SettingsSnapshot: NSObject {
     @objc var redirectMic: Bool = false
     @objc var unlockDisplayOrientation: Bool = false
 }
+// VLTouch: lives in VoidLink's DataManager.swift; the widget subset only reads .keepWidgetSize.
+@objc enum WidgetSizeTransition: Int {
+    case keepWidgetSize
+    case transitionWithOrientation
+}
+// VLTouch: verbatim from VoidLink's DataManager.swift; raw values are load-bearing for archived profiles.
+@objc enum ControllerGyroSwitchMode: Int {
+    case disabled
+    case pressToToggle
+    case holdDown
+}
+
+@objc enum TouchMode: Int {
+    case relative = 0
+    case native = 1
+    case absolute = 2
+    case disabled = 3
+    case nativeOnly = 4
+}
 
 final class DataManager: NSObject {
 

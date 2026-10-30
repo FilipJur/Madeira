@@ -19,6 +19,8 @@ extern "C" {
 #define BUTTON_LEFT   0x01
 #define BUTTON_MIDDLE 0x02
 #define BUTTON_RIGHT  0x03
+#define BUTTON_X1     0x04 // VLTouch: upstream Limelight.h mouse X1 (missed in first pass; used by CommandManager + ControllerSupport.m).
+#define BUTTON_X2     0x05 // VLTouch: upstream Limelight.h mouse X2.
 
 #define LI_TOUCH_EVENT_DOWN 0x01
 #define LI_TOUCH_EVENT_UP   0x02

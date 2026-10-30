@@ -1,7 +1,8 @@
 // VLTouch: Compat stub; S5 makes real what the runtime needs.
 import UIKit
 
-// Only the type is referenced (CommandManager.viewController), never a member.
+// VLTouch: matches VoidLink's @objc public class + reloadTableView (CommandManager.swift:488,658).
 @objcMembers
-final class ToolboxViewController: UIViewController {
+public final class ToolboxViewController: UIViewController {
+    @objc public func reloadTableView() {}
 }

@@ -9,3 +9,13 @@ final class PencilHandler: NSObject {
     var disableTilt: Bool = false
     var pencilProEnabled: Bool = false
 }
+// VLTouch: purchase-gated pencil pack; storefront dropped, purchase is a no-op (tips/purchase -> no-op).
+@objc enum AddOnProduct: UInt8 {
+    case PencilProPack
+}
+
+@objcMembers
+final class IAPManager: NSObject {
+    @objc static let shared = IAPManager()
+    @objc func purchase(_ product: AddOnProduct) {}
+}

@@ -9,6 +9,7 @@
 #ifndef CustomTapGestureRecognizer_h
 #define CustomTapGestureRecognizer_h
 
+#import <UIKit/UIKit.h> // VLTouch: was Foundation-only; VoidLink's prefix header supplied UIKit.
 
 @interface CustomTapGestureRecognizer : UIGestureRecognizer{
     CGFloat lowestTouchPointYCoord;
