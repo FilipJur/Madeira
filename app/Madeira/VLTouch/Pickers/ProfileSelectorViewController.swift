@@ -8,6 +8,7 @@
 
 import Compression
 import UIKit
+import UniformTypeIdentifiers
 
 #if os(tvOS)
 private final class ProfileSelectorNoFocusWindow: UIWindow {
@@ -165,6 +166,8 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
     private let importButton = UIButton(type: .system)
     private let exportButton = UIButton(type: .system)
     private let restoreButton = UIButton(type: .system)
+    private let renameButton = UIButton(type: .system)
+    private var exportTemporaryURL: URL?
     private var panelConstraints: [NSLayoutConstraint] = []
     private var pendingTransitionSize: CGSize?
     private var presentationWindow: UIWindow?
@@ -390,17 +393,19 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
         configureToolbarButton(importButton, title: "Import".localized, symbolName: "square.and.arrow.down")
         configureToolbarButton(exportButton, title: "Export".localized, symbolName: "square.and.arrow.up")
         configureToolbarButton(restoreButton, title: "Restore".localized, symbolName: "arrow.counterclockwise")
+        configureToolbarButton(renameButton, title: "Rename".localized, symbolName: "pencil")
 
         duplicateButton.addTarget(self, action: #selector(duplicateTapped(_:)), for: .touchUpInside)
         deleteButton.addTarget(self, action: #selector(deleteTapped(_:)), for: .touchUpInside)
         importButton.addTarget(self, action: #selector(importDataTapped(_:)), for: .touchUpInside)
         exportButton.addTarget(self, action: #selector(exportDataTapped(_:)), for: .touchUpInside)
         restoreButton.addTarget(self, action: #selector(restoreTapped(_:)), for: .touchUpInside)
+        renameButton.addTarget(self, action: #selector(renameTapped(_:)), for: .touchUpInside)
 
         contentView.addSubview(profileCollectionView)
         contentView.addSubview(toolbarView)
         toolbarView.addSubview(toolbarStackView)
-        [duplicateButton, deleteButton, importButton, exportButton, restoreButton].forEach(toolbarStackView.addArrangedSubview)
+        [duplicateButton, renameButton, deleteButton, importButton, exportButton, restoreButton].forEach(toolbarStackView.addArrangedSubview)
 
         updatePanelTheme()
         updateToolbarVisibility()
@@ -467,7 +472,7 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
         contentView.layer.borderWidth = darkMode ? 0 : 0.5
 
         let tint = darkMode ? UIColor(white: 1, alpha: 0.86) : UIColor(white: 0.10, alpha: 0.86)
-        [duplicateButton, deleteButton, importButton, exportButton, restoreButton].forEach { button in
+        [duplicateButton, renameButton, deleteButton, importButton, exportButton, restoreButton].forEach { button in
             button.tintColor = tint
             button.setTitleColor(tint, for: .normal)
             button.backgroundColor = .clear
@@ -736,6 +741,7 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
                 alert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "Ok"), style: .default))
                 self.present(alert, animated: true)
             } else {
+                self.persistProfileOrderIfNeeded(notify: false)
                 self.profilesManager.duplicateSelectedProfile(withName: enteredProfileName)
                 let alert = UIAlertController(
                     title: "",
@@ -758,8 +764,87 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
     }
 
     @IBAction func deleteTapped(_ sender: Any?) {
+        persistProfileOrderIfNeeded(notify: false)
         profilesManager.deleteCurrentSelectedProfile()
         profileViewRefresh()
+    }
+
+    // VLTouch: VoidLink's selector has no rename; Madeira's profile management lists it.
+    // Renames the selected profile in place (never the built-in "Default", same rules as Duplicate).
+    @IBAction func renameTapped(_ sender: Any?) {
+        guard let index = validProfileIndex(selectedProfileIndex),
+              let profile = profiles.object(at: index) as? OSCProfile else { return }
+        guard index > 0 else {
+            presentMessageAlert(LocalizationHelper.localizedString(forKey: "Saving over the 'Default' profile is not allowed"))
+            return
+        }
+
+        let oldName = profile.name
+        let inputAlert = UIAlertController(
+            title: LocalizationHelper.localizedString(forKey: "Enter the name you want to save this profile as"),
+            message: "",
+            preferredStyle: .alert
+        )
+        inputAlert.addTextField { textField in
+            textField.placeholder = LocalizationHelper.localizedString(forKey: "name")
+            textField.text = oldName
+            textField.clearButtonMode = .whileEditing
+            textField.borderStyle = .none
+        }
+        inputAlert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "Cancel"), style: .default))
+        inputAlert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "Save"), style: .default) { [weak self, weak inputAlert] _ in
+            guard let self, let inputAlert else { return }
+            let newName = inputAlert.textFields?.first?.text ?? ""
+
+            let problem: String?
+            if newName == oldName {
+                return
+            } else if newName == "Default" {
+                problem = "Saving over the 'Default' profile is not allowed"
+            } else if newName.isEmpty {
+                problem = "Profile name cannot be blank!"
+            } else if self.profilesManager.profileNameAlreadyExist(newName) {
+                problem = "Profile name already exists"
+            } else {
+                problem = nil
+            }
+
+            if let problem {
+                let alert = UIAlertController(title: "", message: LocalizationHelper.localizedString(forKey: problem), preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "Ok"), style: .default) { _ in
+                    self.present(inputAlert, animated: true)
+                })
+                self.present(alert, animated: true)
+                return
+            }
+            self.commitRename(from: oldName, to: newName)
+        })
+
+        present(inputAlert, animated: true)
+    }
+
+    private func commitRename(from oldName: String, to newName: String) {
+        persistProfileOrderIfNeeded(notify: false)
+        let allProfiles = profilesManager.getAllProfiles()
+        guard let target = profilesManager.findProfile(byName: oldName, inProfileArray: allProfiles) else { return }
+        target.name = newName
+        profilesManager.persistProfileOrder(allProfiles)
+        profileViewRefresh()
+    }
+
+    /// Shows an OK-only message once nothing else (a closing document picker, another alert) is on screen.
+    private func presentMessageAlert(_ message: String, attempts: Int = 20) {
+        if presentedViewController != nil {
+            guard attempts > 0 else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                self?.presentMessageAlert(message, attempts: attempts - 1)
+            }
+            return
+        }
+        guard viewIfLoaded?.window != nil else { return }
+        let alert = UIAlertController(title: "", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "OK"), style: .default))
+        present(alert, animated: true)
     }
 
     @IBAction func exportDataTapped(_ sender: Any?) {
@@ -785,27 +870,57 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
         present(alert, animated: true)
     }
 
+    // VLTouch: export writes the finished file first and hands it to the system document picker as a
+    // copy ("Save to Files"); VoidLink wrote an empty placeholder and filled in the picked destination
+    // afterwards, which needs security-scoped write access to a URL the app does not own.
     private func beginExport(scope: ProfileExportScope) {
 #if os(tvOS)
         _ = scope
 #else
+        persistProfileOrderIfNeeded(notify: false)
         currentFileOperation = .exportOperation
         currentExportScope = scope
-        let tempPath = NSTemporaryDirectory().appending(exportFileName(for: scope))
-        try? Data().write(to: URL(fileURLWithPath: tempPath), options: .atomic)
 
-        let picker = UIDocumentPickerViewController(url: URL(fileURLWithPath: tempPath), in: .exportToService)
+        let encodedProfiles = encodedProfilesForExport()
+        guard encodedProfiles.count > 0,
+              let payload = try? NSKeyedArchiver.archivedData(withRootObject: encodedProfiles, requiringSecureCoding: true) else {
+            presentMessageAlert(LocalizationHelper.localizedString(forKey: "Failed to export profiles"))
+            return
+        }
+
+        let exportDirectory = FileManager.default.temporaryDirectory.appendingPathComponent("VLProfileExport", isDirectory: true)
+        let exportURL = exportDirectory.appendingPathComponent(exportFileName(for: scope))
+        do {
+            try FileManager.default.createDirectory(at: exportDirectory, withIntermediateDirectories: true)
+            try ProfileFileContainer.packedData(from: payload).write(to: exportURL, options: .atomic)
+        } catch {
+            presentMessageAlert(LocalizationHelper.localizedString(forKey: "Failed to export profiles"))
+            return
+        }
+
+        removeExportTemporaryFile()
+        exportTemporaryURL = exportURL
+        let picker = UIDocumentPickerViewController(forExporting: [exportURL], asCopy: true)
         picker.delegate = self
         present(picker, animated: true)
 #endif
     }
 
+    private func removeExportTemporaryFile() {
+        if let exportTemporaryURL {
+            try? FileManager.default.removeItem(at: exportTemporaryURL)
+        }
+        exportTemporaryURL = nil
+    }
+
+    // VLTouch: import opens the picked file as a copy in the app's own inbox, so it works without
+    // security-scoped access to the original location (sideloaded build, no iCloud container).
     @IBAction func importDataTapped(_ sender: Any?) {
 #if os(tvOS)
         _ = sender
 #else
         currentFileOperation = .importOperation
-        let picker = UIDocumentPickerViewController(documentTypes: ["public.item"], in: .open)
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
         picker.delegate = self
         picker.allowsMultipleSelection = false
         present(picker, animated: true)
@@ -819,31 +934,23 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
 
 #if !os(tvOS)
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let url = urls.first else { return }
         switch currentFileOperation {
         case .exportOperation:
-            profilesToFile(url)
+            removeExportTemporaryFile()
         case .importOperation:
+            guard let url = urls.first else { return }
             fileToProfiles(url)
+        }
+    }
+
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        if currentFileOperation == .exportOperation {
+            removeExportTemporaryFile()
         }
     }
 #endif
 
-    private func profilesToFile(_ destinationURL: URL) {
-        do {
-            let payload = try NSKeyedArchiver.archivedData(withRootObject: encodedProfilesForExport(), requiringSecureCoding: true)
-            let data = ProfileFileContainer.packedData(from: payload)
-            let accessed = destinationURL.startAccessingSecurityScopedResource()
-            defer {
-                if accessed {
-                    destinationURL.stopAccessingSecurityScopedResource()
-                }
-            }
-            try data.write(to: destinationURL, options: .atomic)
-        } catch {
-            // NSLog("写入失败: \(error)")
-        }
-    }
+    // (VLTouch: `profilesToFile` removed with the export rewrite above.)
 
     private func encodedProfilesForExport() -> NSMutableArray {
         switch currentExportScope {
@@ -886,12 +993,8 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
     }
 
     private func fileToProfiles(_ sourceURL: URL) {
-        var restoreFailed = false
+        // Copies made by the picker live in our own sandbox, where this returns false; that is fine.
         let accessed = sourceURL.startAccessingSecurityScopedResource()
-        if !accessed {
-            restoreFailed = true
-        }
-
         defer {
             if accessed {
                 sourceURL.stopAccessingSecurityScopedResource()
@@ -901,45 +1004,19 @@ final class ProfileSelectorViewController: UIViewController, UICollectionViewDat
         do {
             let fileData = try Data(contentsOf: sourceURL)
             let profilePayloadData = try ProfileFileContainer.unpackedData(from: fileData)
-            // NSLog("profile file read: \(UInt32(fileData.count))")
             let classes: [AnyClass] = [NSMutableData.self, NSMutableArray.self]
-            let profilesEncoded = try NSKeyedUnarchiver.unarchivedObject(ofClasses: classes, from: profilePayloadData) as? NSMutableArray
-
-            let restoredAlert = UIAlertController(
-                title: LocalizationHelper.localizedString(forKey: ""),
-                message: LocalizationHelper.localizedString(forKey: "Pofiles imported"),
-                preferredStyle: .alert
-            )
-            let failedAlert = UIAlertController(
-                title: LocalizationHelper.localizedString(forKey: ""),
-                message: LocalizationHelper.localizedString(forKey: "Failed to import profiles"),
-                preferredStyle: .alert
-            )
-            let okAction = UIAlertAction(title: LocalizationHelper.localizedString(forKey: "OK"), style: .default)
-
-            if restoreFailed || profilesEncoded == nil {
-                failedAlert.addAction(okAction)
-                present(failedAlert, animated: true)
-            } else {
-                profilesManager.importEncodedProfiles(profilesEncoded!)
-                restoredAlert.addAction(okAction)
-                present(restoredAlert, animated: true)
+            guard let profilesEncoded = try NSKeyedUnarchiver.unarchivedObject(ofClasses: classes, from: profilePayloadData) as? NSMutableArray,
+                  profilesEncoded.count > 0 else {
+                throw NSError(domain: "ProfileFileContainer", code: 3)
             }
 
-            profileViewRefresh()
-            // NSLog("profile test: \(UInt32(profilesEncoded?.count ?? 0))")
+            persistProfileOrderIfNeeded(notify: false)
+            profilesManager.importEncodedProfiles(profilesEncoded)
+            presentMessageAlert(LocalizationHelper.localizedString(forKey: "Pofiles imported"))
         } catch {
-            restoreFailed = true
-            let failedAlert = UIAlertController(
-                title: LocalizationHelper.localizedString(forKey: ""),
-                message: LocalizationHelper.localizedString(forKey: "Failed to import profiles"),
-                preferredStyle: .alert
-            )
-            failedAlert.addAction(UIAlertAction(title: LocalizationHelper.localizedString(forKey: "OK"), style: .default))
-            present(failedAlert, animated: true)
-            profileViewRefresh()
-            // NSLog("解码失败: \(error)")
+            presentMessageAlert(LocalizationHelper.localizedString(forKey: "Failed to import profiles"))
         }
+        profileViewRefresh()
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
