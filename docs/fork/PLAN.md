@@ -33,7 +33,8 @@ Research: `docs/fork/research/madeira-recon.md`, `docs/fork/research/voidlink-re
 - Shared registries (`project.pbxproj`, bridging header) are edited once in the contract task; `ContentView.swift` gets one minimal hook in the integration task.
 - Feature switch `touch-system = voidlink` in `madeira.cfg` (default: Madeira's own controls) so upstream's touch system keeps working.
 - Per-game profile binding is new (VoidLink has one global selection): stored with the library entry (`controlLayout`-style field).
-- Dropped from VoidLink: stream touch modes (absolute/relative/native passthrough), pen/pencil, mic, PiP, host pairing/crypto, Moonlight networking/stats.
+- Dropped from VoidLink: stream touch modes (absolute/relative/native passthrough), pen/pencil, mic, PiP, host pairing/crypto, Moonlight networking/stats, controller navigation of VoidLink's screens (`ControllerNavigator`, radial menu, controller-as-mouse; D4), SVGKit (D2), non-English strings (D3). Deferred: DS4 touchpad widget and controller motion passthrough (need upstream `GamepadInput.swift` HID changes).
+- Port design, sink contract, file map and decisions D1-D4: `docs/fork/TOUCH-PORT.md`.
 
 ## Phases
 
@@ -43,11 +44,10 @@ flowchart TD
   P0 --> R[P1 research R1-R4, scouts]
   P1 --> G1{G1 phone test}
   R --> D[TOUCH-PORT.md, lead]
-  G1 --> P2[P2 contract, 1 worker]
+  P1 --> P2[P2 import, compile-first, 1 worker]
   D --> P2
-  P2 --> P3[P3 port wave, 6-7 workers]
-  P3 --> P4[P4 integration, 1 ui-worker]
-  P4 --> G2{G2 phone test + fix rounds}
+  P2 --> P3[P3 wave S1-S5, 5 workers]
+  P3 --> G2{G2 phone test + fix rounds}
   G1 --> P5[P5 game tweaks, ongoing]
   G2 --> P6[P6 weekly upstream sync]
 ```
@@ -68,29 +68,20 @@ flowchart TD
 - [x] Lead: `docs/fork/TOUCH-PORT.md` drafted. Proposes replacing P2/P3 below with compile-first import + 5-slice wave; pending user approval (D1-D4).
 - [ ] **G1** (user, phone): Esoteric Ebb launch, Disco Elysium, current touch controls on the self-built main.
 
-### P2 Contract (1 worker, Muse)
-- [ ] `third_party/voidlink/` verbatim import at `fa42805` + `PROVENANCE.md`.
-- [ ] `app/Madeira/VLTouch/**` skeleton files for every planned file, registered in `project.pbxproj`; ObjC headers in the bridging header.
-- [ ] Sink contract: `VLLiShim.h` (`LiSend*` signatures, button-flag constants) and `ControllerSupport`-shaped façade interface, stubbed.
-- [ ] `touch-system` config switch, default off.
+### P2 Import, compile-first (1 worker + parallel helpers; needs P1 native libs to link)
+- [ ] `third_party/voidlink/` = port-subset files verbatim at `fa42805` + `LICENSE.txt` + `PROVENANCE.md`.
+- [ ] Copy into `app/Madeira/VLTouch/`, edits limited to import lines, storyboard module, `ProfileFileContainer` move, each tagged `// VLTouch:`.
+- [ ] Compat stubs, `VLLiShim` + `ControllerSupport` façade with no-op bodies; `GraphicUtils` on `CAShapeLayer` (D2); English-only `VLTouch.xcstrings` (D3).
+- [ ] Register everything in `project.pbxproj`, bridging header, resources (`.bin`, `VLEditor.storyboard`, imagesets).
+- [ ] `touch-system` key (default `madeira`) + catalog regen; nothing hooked.
 - [ ] `tools/fork/app-check.sh`: app target only, `CODE_SIGNING_ALLOWED=NO`, per-clone DerivedData under `/tmp`, machine-wide lock (max 2 concurrent).
 - [ ] Lead review + merge; app-check green on `fork/main`.
 
-### P3 Port wave (6-7 isolated workers; final split from R1)
-| Slice | Agent | Files (under `app/Madeira/VLTouch/`) | Scope |
-|---|---|---|---|
-| W-A Model | worker | `Model/*` | `OSCProfile`, `OnScreenButtonState`, `OSCProfilesManager` (archive, import/export, templates `.bin`) |
-| W-A2 Commands | worker | `Commands/*` | `CommandManager` DSL (`OSCX-OSCY-100MS-OSCB`), VK tables, `RemoteCommand` macros, combo/auto-release helpers |
-| W-B Sink | worker | `Sink/*` (+ `Winios.m` if R2 requires) | `LiSend*` shim → winios; `ControllerSupport` façade → `GamepadInput`; mouse/scroll/HID touchpad |
-| W-C1 Widget | ui-worker | `Widgets/OnScreenWidgetView.swift` | the 5.1k-line widget class |
-| W-C2 Runtime | ui-worker | `Widgets/*` except above | `OnScreenControls` (trimmed), `LayoutOnScreenControls`, `MotionHandler`, `CursorInertia`, `InertialScroller`, `SafeTimer`, `HapticContext`, `AbstractGamepadOverlayView`, `RadialMenuOverlayView` |
-| W-D1 Editor | ui-worker | `Editor/LayoutOnScreenControls*` + storyboard | layout editor (add/edit/duplicate/delete/undo/bulk edit) |
-| W-D2 Pickers | ui-worker | `Editor/*` except above | `ProfileSelectorViewController`, widget picker, toolbars, strings |
+### P3 Wave (5 isolated workers, disjoint files; table in TOUCH-PORT.md)
+- [ ] S1 Sink (worker), S2 Host + hooks (ui-worker), S3 Editor (ui-worker), S4 Pickers (ui-worker), S5 Model + Compat (worker).
+- [ ] Lead merges one at a time, app-check after each.
 
-Each worker builds against the P2 stubs, runs `tools/fork/app-check.sh`, fans out helpers internally. Lead merges one at a time.
-
-### P4 Integration (1 ui-worker) + G2
-- [ ] Host the VLTouch overlay in the game session; minimal `ContentView.swift` hook; settings toggle; per-game profile binding; map functional buttons (SETTINGS, QUITAPP, SOFTKEYBOARD, PROFILES) to Madeira actions.
+### G2
 - [ ] Lead builds + sideloads; **G2** (user, phone); fix rounds as new workers (`git cherry-pick <base>..omp/task/<name>` first).
 
 ### P5 Game tweaks (ongoing from G1)

@@ -1,6 +1,6 @@
 # VLTouch port: file map, sink contract, slicing
 
-Lead document, fork only. Inputs: `research/r1-voidlink-deps.md` (R1), `r2-madeira-sinks.md` (R2), `r3-overlay-host.md` (R3), `r4-bcd-hook.md` (R4), all 2026-10-30 against Madeira `fork/main` `67bd667`, VoidLink `fa42805`, BCD `05e9f6f`. Status: D1-D3 decided by user 2026-10-30; D4 pending.
+Lead document, fork only. Inputs: `research/r1-voidlink-deps.md` (R1), `r2-madeira-sinks.md` (R2), `r3-overlay-host.md` (R3), `r4-bcd-hook.md` (R4), all 2026-10-30 against Madeira `fork/main` `67bd667`, VoidLink `fa42805`, BCD `05e9f6f`. Status: D1-D4 decided by user 2026-10-30.
 
 ## Verdicts
 
@@ -89,4 +89,4 @@ Acceptance: app target builds with all VoidLink code linked; upstream touch cont
 | D1 | Restructure P2/P3 as above | **approved** |
 | D2 | SVGKit (SPM + `libxml2`, used only by `GraphicUtils` for 6 SVGs ≤2 KB) | **no dependency**: `CAShapeLayer` paths generated once from the 6 SVGs (~150 LOC); `changeColor` keeps working on shape layers |
 | D3 | Localization | **English only**: `VLTouch.xcstrings` keeps the `en` value of each key (keys like `=disableTilt` are identifiers, so the English values are required, not the keys) |
-| D4 | `RadialMenuOverlayView` + `RadialMenuView` + full `ControllerNavigator` (≈3.6k LOC): drive VoidLink's own screens with a physical controller | pending; lead pick drop (small `ControllerNavigator` stub stays either way, the picker/profile screens reference its API) |
+| D4 | `RadialMenuOverlayView` + `RadialMenuView` + full `ControllerNavigator` (≈3.6k LOC): drive VoidLink's own screens with a physical controller | **dropped**; small `ControllerNavigator` API stub stays (picker/profile screens reference it) |
