@@ -321,8 +321,8 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         NotificationCenter.default.removeObserver(self)
-        // VLTouch: only a real dismissal; a fullScreen child (picker, alert) covering the editor also disappears it.
-        if isBeingDismissed, let onDismissed {
+        // VLTouch: only a real dismissal (own, or the presenter's); a child (picker, alert) covering the editor also disappears it.
+        if isBeingDismissed || presentingViewController?.isBeingDismissed == true, let onDismissed {
             self.onDismissed = nil
             onDismissed()
         }
