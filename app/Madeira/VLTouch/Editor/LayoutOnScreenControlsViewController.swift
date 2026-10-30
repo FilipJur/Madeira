@@ -34,6 +34,10 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
     var onScreenWidgetViews = NSMutableSet()
     var OSCSegmentSelected: Int = 0
     dynamic var quickSwitchEnabled = false
+    /// VLTouch: called once, after the editor has been dismissed (close button, save-and-close,
+    /// profile-selector dismissal). Stands in for the host callbacks VoidLink got through
+    /// `GameProfileSelectorCloseNotification`.
+    var onDismissed: (() -> Void)?
 
     @IBOutlet weak var trashCanButton: UIButton!
     @IBOutlet weak var undoButton: UIButton!
@@ -307,6 +311,7 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
         selectedWidget = nil
         widgetPanelStoredCenter = widgetPanelStack.center
         setupWidgetPanel()
+        OSCProfilesManager.setLayoutViewBounds(view.bounds) // VLTouch: the real size, after presentation and any rotation
         // print("loadingMode \(profileSelectorLoadingMode)")
         profileRefresh()
         if !toolbarStackView.isHidden {
@@ -317,6 +322,14 @@ final class LayoutOnScreenControlsViewController: UIViewController, OnScreenWidg
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         NotificationCenter.default.removeObserver(self)
+        // VLTouch: only a real dismissal (own, or the presenter's); a child (picker, alert) covering the editor also disappears it.
+        let presenterGone = presentingViewController == nil
+            || presentingViewController?.isBeingDismissed == true
+            || (view.window == nil && presentingViewController?.viewIfLoaded?.window == nil)
+        if isBeingDismissed || presenterGone, let onDismissed {
+            self.onDismissed = nil
+            onDismissed()
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
