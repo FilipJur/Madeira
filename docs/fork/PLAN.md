@@ -79,7 +79,8 @@ flowchart TD
 
 ### P3 Wave (5 isolated workers, disjoint files; table in TOUCH-PORT.md)
 - [x] S1 Sink (worker), S2 Host + hooks (ui-worker), S3 Editor (ui-worker), S4 Pickers (ui-worker), S5 Model + Compat (worker). Launched 2026-10-30, shared rules in the lead session (`local://P3-rules.md`).
-- [x] Lead merged S3 `7378ddd`, S4 `66adc19`, S1 `bb28734`, S2 `f6d16d5`, S5 `7b17262`; app-check after each. Integration review (reviewer): stuck legacy pad bits across rebuild, first-run profile select before template import, cursor reset on release → fix round `FixG2a`.
+- [x] Lead merged S3 `7378ddd`, S4 `66adc19`, S1 `bb28734`, S2 `f6d16d5`, S5 `7b17262`; app-check after each. Integration review (reviewer): stuck legacy pad bits across rebuild, first-run profile select before template import, cursor reset on release → fix round `FixG2a`, merged `2c4774e`.
+- [x] G2 IPA: `package-ipa.sh` only (native libs unchanged), 209,506,422 B, sha256 `37fdcfe17872d671…`, contains `VLEditor*.storyboardc`, `widgetTemplates*.bin`, `en.lproj/VLTouch.strings`.
 
 ### G2
 - [ ] Lead builds + sideloads; **G2** (user, phone); fix rounds as new workers (`git cherry-pick <base>..omp/task/<name>` first).
