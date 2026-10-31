@@ -86,6 +86,19 @@ flowchart TD
 ### G2
 - [ ] Lead builds + sideloads; **G2** (user, phone); fix rounds as new workers (`git cherry-pick <base>..omp/task/<name>` first).
 
+### P4 32-bit DX9 adaptation (5 isolated workers, disjoint files)
+Source: `docs/fork/research/dx9-path.md` §4 recipe + §5 blockers, `mem-graphics.md` §7, `dx9-batman-fix.md` §5(b), `mem-footprint.md` §5.
+
+| Slice | Agent | Owns | Scope |
+|---|---|---|---|
+| T1 GfxUI | worker | `app/Madeira/ConfigCatalog.generated.swift` (regen only), `build/tools/gen-config-catalog.py` (one OVERLAY row) | `d3d9` picker offers `wined3d`; fix native scope text, `d3d9shim` message |
+| T2 MemRecipe | worker | `app/Madeira/GameRecommendations.swift` + catalog regen | memory recipe for 6 DX9-era games: `pool`, swap keys, `vram-mb`, older-NVIDIA, `DXMT_MAX_VRAM_MB`, Rockstar set for L.A. Noire |
+| T3 DX9Mips | worker | `dxmt` submodule (D3D9 sources only) | BC mip clamp on `CreateTexture`, reuse d3d11 policy helper |
+| T4 Census | worker | `dxmt` submodule (`dxmt_mem_census.hpp` only) | BC texel sizes per physical format (0 MB, unblocks sizing) |
+| T5 Transient | worker | `dxmt` submodule (DXMT allocators only) | footprint-keyed reclaim of staging/copy-temp/argbuf pools (≤ ~450 MB) |
+
+`dxmt/` is a submodule but T3-T5 touch D3D9-only/DXMT-only files; the lead reviews diffs against upstream DXMT (`willfaust/dxmt` `05876bb`) for conflicts. T1/T2 merge first (pure app, app-check), then T3-T5 one at a time with `dxmt` diffs.
+
 ### P5 Game tweaks (ongoing from G1)
 - Per-game config (`GameConfigs/<hash>.cfg`, no rebuild): scout reads each log, proposes keys from `ConfigCatalog.generated.swift`. First: Disco Elysium memory (`env.DXMT_MAX_VRAM_MB`, swap tiers), Esoteric Ebb retest.
 - Working configs → `GameRecommendations.swift` entries (worker), candidate upstream PRs (`git commit -s`).
