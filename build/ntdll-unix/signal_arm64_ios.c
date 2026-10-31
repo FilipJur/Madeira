@@ -8546,11 +8546,50 @@ static void setup_raise_exception( ucontext_t *sigcontext, EXCEPTION_RECORD *rec
  *
  * Modify the signal context to call the exception raise function.
  */
+#ifdef WINE_IOS
+static int ios_mach_unix_try_resume( arm_thread_state64_t *state, uintptr_t teb, uintptr_t pc );
+static int ios_mach_unix_fault_return( arm_thread_state64_t *state, uintptr_t teb,
+                                        uintptr_t pc, NTSTATUS status );
+static inline BOOL ios_pc_is_guest( uintptr_t pc );
+static BOOL ios_unix_try_resume( ucontext_t *context, uintptr_t pc, int is_data_fault );
+#endif
+
+#ifdef WINE_IOS
+/* madeira-unix-fault backstop (defence in depth for ill_handler/trap_handler;
+ * not a substitute for the bus/Mach inserts above, which run before the store
+ * emulator rewrites the record). If a unix-side __TRY is armed, resume it;
+ * otherwise abort the thread instead of handing the guest a frame built on a
+ * kernel stack it must reject ("Exception frame is not in stack limits"). */
+static inline BOOL ios_setup_unix_fault_backstop( ucontext_t *sigcontext, EXCEPTION_RECORD *rec )
+{
+    if (is_inside_syscall( SP_sig(sigcontext) ) &&
+        (rec->ExceptionCode == EXCEPTION_ACCESS_VIOLATION ||
+         rec->ExceptionCode == EXCEPTION_DATATYPE_MISALIGNMENT) &&
+        !ios_pc_is_guest( (uintptr_t)PC_sig(sigcontext) ))
+    {
+        if (ios_unix_try_resume( sigcontext, (uintptr_t)PC_sig(sigcontext), TRUE ))
+        {
+            static unsigned long n;
+            if (ios_sig_storm_gate( &n )) ERR( "[unix-try] backstop tid=%04x pc=%p -> longjmp\n",
+                                              (unsigned)GetCurrentThreadId(), (void *)PC_sig(sigcontext) );
+            return TRUE;
+        }
+        ERR("[unix-fault] tid=%04x pc=%p kernel-stack sp with no __TRY\n",
+            (unsigned)GetCurrentThreadId(), (void *)PC_sig(sigcontext) );
+        abort_thread( 1 );
+    }
+    return FALSE;
+}
+#endif
+
 static void setup_exception( ucontext_t *sigcontext, EXCEPTION_RECORD *rec )
 {
     CONTEXT context;
 
     rec->ExceptionAddress = (void *)PC_sig(sigcontext);
+#ifdef WINE_IOS
+    if (ios_setup_unix_fault_backstop( sigcontext, rec )) return;
+#endif
 #ifdef WINE_IOS
     /* task#34 guest-exception-DISPATCH: when the faulting pc is inside a
      * JIT-pool IMAGE COPY, the guest-visible record must carry the PE VA —
@@ -9134,6 +9173,25 @@ static int ios_mach_deliver_guest_exception_inner( thread_t thread, arm_thread_s
             }
             if (st != STATUS_ACCESS_VIOLATION) goto dispatch;
         }
+    }
+
+    if (exception != EXC_BAD_INSTRUCTION &&
+        ios_mach_unix_try_resume( state, thread_teb, (uintptr_t)pc ))
+    {
+        static unsigned long n;
+        if (++n <= 16 || (n % 4096) == 0)
+            dprintf( 2, "[unix-try] mach pc=0x%llx addr=0x%llx -> longjmp (#%lu)\n",
+                     (unsigned long long)pc, (unsigned long long)fault_addr, n );
+        return 1;
+    }
+    if (exception == EXC_BAD_ACCESS &&
+        ios_mach_unix_fault_return( state, thread_teb, (uintptr_t)pc, STATUS_ACCESS_VIOLATION ))
+    {
+        static unsigned long n;
+        if (++n <= 16 || (n % 4096) == 0)
+            dprintf( 2, "[unix-fault] mach pc=0x%llx addr=0x%llx -> syscall return (#%lu)\n",
+                     (unsigned long long)pc, (unsigned long long)fault_addr, n );
+        return 1;
     }
 
     /* only claim faults in plausibly GUEST-side execution:
@@ -9789,6 +9847,94 @@ static BOOL handle_syscall_fault( ucontext_t *context, EXCEPTION_RECORD *rec )
     return TRUE;
 }
 
+#ifdef WINE_IOS
+/* the pc test the fork already uses at :9147-9150, plus the WoW windows it misses (0x79…). */
+static inline BOOL ios_pc_is_guest( uintptr_t pc )
+{
+    extern void *ios_jit_rx_base_global; extern size_t ios_jit_pool_size_global;
+    extern ULONG_PTR ios_wow_base( void ) __attribute__((weak));
+    uintptr_t rx = (uintptr_t)ios_jit_rx_base_global, wb = ios_wow_base ? ios_wow_base() : 0;
+    return (rx && pc >= rx && pc < rx + ios_jit_pool_size_global) || ios_jit_low_contains( pc ) ||
+           pc < 0x100000000ULL || (pc >= 0x7000000000ULL && pc < 0x7400000000ULL) ||
+           (wb && pc >= wb && pc < wb + ((uintptr_t)1 << 32));
+}
+
+static BOOL ios_unix_try_resume( ucontext_t *context, uintptr_t pc, int is_data_fault )
+{
+    struct ntdll_thread_data *td; void *jmp;
+    if (!is_data_fault || ios_pc_is_guest( pc )) return FALSE;
+    if (!is_inside_syscall( SP_sig( context ) )) return FALSE;   /* not unix code */
+    /* unix-fault-safety risk 6: a FEX host-dylib fault while __TRY is armed must
+     * not longjmp out of FEX (leaks CpuStateFrame, ml413 TEB+0x16f8 read hold).
+     * The fault then keeps today's path instead of a corrupting resume. */
+    if (*(volatile uint64_t *)((char *)NtCurrentTeb() + 0x16f8)) return FALSE;
+    td = ntdll_get_thread_data();
+    if (!(jmp = td->jmp_buf)) return FALSE;
+    td->jmp_buf = NULL;                    /* MANDATORY: thread.c:1898 asserts */
+    REGn_sig(0,context) = (ULONG_PTR)jmp; REGn_sig(1,context) = 1;
+    PC_sig(context)     = (ULONG_PTR)longjmp;
+    return TRUE;
+}
+#endif
+
+
+static int ios_mach_unix_try_resume( arm_thread_state64_t *state, uintptr_t teb, uintptr_t pc )
+{
+    enum { OFF_KSTACK = offsetof(TEB,GdiTebBatch)+offsetof(struct ntdll_thread_data,kernel_stack), /*0x3a8*/
+           OFF_JMP    = offsetof(TEB,GdiTebBatch)+offsetof(struct ntdll_thread_data,jmp_buf),     /*0x3d0*/
+           OFF_FRAME  = offsetof(TEB,GdiTebBatch)+offsetof(struct ntdll_thread_data,syscall_frame) };
+    uint64_t kstack = 0, jmp = 0, frame = 0, sp = arm_thread_state64_get_sp( *state );
+    mach_vm_size_t got = 0;
+    if (!teb || ios_pc_is_guest( pc )) return 0;
+    if (mach_vm_read_overwrite( mach_task_self(), teb+OFF_KSTACK, 8,
+                                (mach_vm_address_t)&kstack, &got ) != KERN_SUCCESS || got != 8) return 0;
+    if (mach_vm_read_overwrite( mach_task_self(), teb+OFF_FRAME, 8,
+                                (mach_vm_address_t)&frame, &got ) != KERN_SUCCESS || got != 8 || !frame) return 0;
+    /* proves BOTH that this TEB is this thread's (issue #397's slot-0 fallback is not
+     * evidence) AND that the fault is in unix code: the Mach-side is_inside_syscall,
+     * unix_private.h:469 (sp in [kernel_stack, current syscall_frame]) */
+    /* risk 6 (as in ios_unix_try_resume): refuse while the thread holds a FEX
+     * shared lock (TEB+0x16f8); longjmping out of FEX would leak the read
+     * hold. Read from the exception-server thread through the kernel copy;
+     * an unreadable lock word also declines. */
+    {
+        uint64_t held = 0;
+        if (mach_vm_read_overwrite( mach_task_self(), teb+0x16f8, 8,
+                                    (mach_vm_address_t)&held, &got ) != KERN_SUCCESS || got != 8) return 0;
+        if (held) return 0;
+    }
+    if (mach_vm_read_overwrite( mach_task_self(), teb+OFF_JMP, 8,
+                                (mach_vm_address_t)&jmp, &got ) != KERN_SUCCESS || got != 8 || !jmp) return 0;
+    { uint64_t zero = 0; mach_vm_write( mach_task_self(), teb+OFF_JMP, (vm_offset_t)&zero, 8 ); }
+    arm_thread_state64_set_pc_fptr( *state, (void *)longjmp );
+    state->__x[0] = jmp; state->__x[1] = 1; state->__x[18] = teb;
+    return 1;
+}
+
+/* Mirror of handle_syscall_fault's no-__TRY branch for the Mach path: a host-pc
+ * fault on the kernel stack with no __TRY armed fails the syscall the way
+ * upstream does (status in x0, sp at the syscall frame, pc at the dispatcher
+ * return) instead of building a guest frame on the kernel stack. Returns 1
+ * when it rewrote *state (caller replies KERN_SUCCESS), 0 to decline. */
+static int ios_mach_unix_fault_return( arm_thread_state64_t *state, uintptr_t teb,
+                                        uintptr_t pc, NTSTATUS status )
+{
+    enum { OFF_KSTACK = offsetof(TEB,GdiTebBatch)+offsetof(struct ntdll_thread_data,kernel_stack),
+           OFF_FRAME  = offsetof(TEB,GdiTebBatch)+offsetof(struct ntdll_thread_data,syscall_frame) };
+    extern void __wine_syscall_dispatcher_return(void);
+    uint64_t kstack = 0, frame = 0, sp = arm_thread_state64_get_sp( *state );
+    mach_vm_size_t got = 0;
+    if (!teb || ios_pc_is_guest( pc )) return 0;
+    if (mach_vm_read_overwrite( mach_task_self(), teb+OFF_KSTACK, 8,
+                                (mach_vm_address_t)&kstack, &got ) != KERN_SUCCESS || got != 8) return 0;
+    if (mach_vm_read_overwrite( mach_task_self(), teb+OFF_FRAME, 8,
+                                (mach_vm_address_t)&frame, &got ) != KERN_SUCCESS || got != 8 || !frame) return 0;
+    if (!kstack || sp < kstack || sp > frame) return 0;
+    arm_thread_state64_set_pc_fptr( *state, __wine_syscall_dispatcher_return );
+    state->__x[0] = status; state->__x[18] = teb;
+    arm_thread_state64_set_sp( *state, (void *)(uintptr_t)frame );
+    return 1;
+}
 
 /**********************************************************************
  *		ios_fixup_x18_for_return
@@ -14388,6 +14534,28 @@ static void bus_handler( int signal, siginfo_t *siginfo, void *sigcontext )
                  * Deliver the honest AV; FEX's ResetToConsistentState takes the
                  * reconstruction path for c0000005 and rewrites the record to
                  * the true guest RIP (proven in ml419's fault #27 flow). */
+                /* madeira-unix-fault: a data fault taken by UNIX code is never
+                 * a guest exception. Batman died here (main6.txt:12776-12794):
+                 * memmove on a never-materialised page. */
+                if (!is_exec_fault && ios_unix_try_resume( bus_ctx, (uintptr_t)pc, TRUE ))
+                {
+                    static unsigned long n;
+                    if (ios_sig_storm_gate( &n )) ERR( "[unix-try] signal tid=%04x pc=%p addr=%p -> longjmp\n",
+                                                      (unsigned)GetCurrentThreadId(), pc, siginfo->si_addr );
+                    return;
+                }
+                if (!is_exec_fault && !ios_pc_is_guest( (uintptr_t)pc ))
+                {
+                    EXCEPTION_RECORD u = { EXCEPTION_ACCESS_VIOLATION, 0, NULL, pc, 2,
+                                           { EXCEPTION_READ_FAULT, (ULONG_PTR)siginfo->si_addr } };
+                    if (handle_syscall_fault( bus_ctx, &u ))      /* upstream's no-__TRY branch */
+                    {
+                        static unsigned long n;
+                        if (ios_sig_storm_gate( &n )) ERR( "[unix-fault] signal tid=%04x pc=%p addr=%p -> return\n",
+                                                          (unsigned)GetCurrentThreadId(), pc, siginfo->si_addr );
+                        return;
+                    }
+                }
                 rec = vrec;
                 ERR("BUS->AV: unreadable target addr=%p pc=%p rw=%d rev=ml420\n",
                     siginfo->si_addr, pc, (int)vrec.ExceptionInformation[0]);
