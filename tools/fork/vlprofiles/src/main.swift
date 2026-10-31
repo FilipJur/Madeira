@@ -66,6 +66,10 @@ func run() throws {
         throw Fail("round trip failed (\(diffs.count) mismatches)")
     }
     print("round-trip OK: \(decoded.count) profiles, \(decoded.reduce(0) { $0 + $1.states.count }) widgets, all properties equal")
+    try checkTokens(decoded, tables: tables)
+    try checkParity(repo: repo)
+    try checkBundledTemplate(repo: repo, tables: tables)
+    print("ALL CHECKS PASSED")
 }
 
 do { try run() } catch {
