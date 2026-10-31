@@ -65,9 +65,9 @@ for m in re.finditer(r'static let (\w+) = GameRecommendation\(\n\s*id: "([^"]+)"
     lines = [line[len(indent):] if line.startswith(indent) else line for line in body.split('\n')]
     presets[ident] = dict(name=name, title=title, version=int(version), lines=lines, switches=' '.join((switches or '').split()))
 assert set(presets) == {'rdr2-steam', 'rdr2-other', 'gta5e-steam', 'gta5e-other', 'ghost-of-tsushima', 'god-of-war',
-                        'horizon-zero-dawn', 'dark-souls-remastered', 'dark-souls-iii', 'alan-wake', 'fallout-new-vegas', 'fallout-3', 'black-ops-2', 'standard'}, sorted(presets)
+                        'horizon-zero-dawn', 'dark-souls-remastered', 'dark-souls-iii', 'alan-wake', 'celeste', 'fallout-new-vegas', 'fallout-3', 'black-ops-2', 'standard'}, sorted(presets)
 assert ('static let all = [rdr2Steam, rdr2Other, gta5EnhancedSteam, gta5EnhancedOther, ghostOfTsushima, godOfWar, horizonZeroDawn,\n'
-        '                      alanWake, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]') in lists_src
+        '                      alanWake, celeste, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]') in lists_src
 
 # madeira-bcd's defaults where upstream's differ: every game madeira-bcd ran had them,
 # so every game's own list ends with them. The standard list reaches every other game
@@ -76,7 +76,7 @@ FORK_DEFAULTS = ["# madeira-bcd's defaults, which this list was tested with (ups
                  'env.MADEIRA_FREE_DELAY_MS = 2000', 'env.MADEIRA_CTX_CPU_AREA = 2', 'env.MADEIRA_WAIT_CHILDREN = 1',
                  'env.MADEIRA_JIT_DUMP = 0']
 for ident, p in presets.items():
-    if ident in ('dark-souls-remastered', 'dark-souls-iii', 'alan-wake'):
+    if ident in ('dark-souls-remastered', 'dark-souls-iii', 'alan-wake', 'celeste'):
         p['tested'], p['fork'] = [line for line in p['lines'][2:] if not line.startswith('#')], []
         continue
     # The Fallout lists are the standard one plus a switch: the games ran with it.
@@ -118,7 +118,13 @@ assert fnv['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-
                          'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
                          'env.MADEIRA_EC_HOOK_TRACE = 0'] and fnv['switches'] == 'olderNvidia: true' \
     and fnv['version'] == 2, fnv
-print('PASS: fourteen lists, recorded fork defaults retained, Dark Souls and Fallout lists kept separate, no key twice, '
+# Celeste (untested list): the same §4 recipe list as Alan Wake. No switches, no fork defaults.
+cel = presets['celeste']
+assert cel['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-min-mb = 1',
+                         'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
+                         'env.MADEIRA_PAD_EARLY_SLOT = 1', 'env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1',
+                         'env.MADEIRA_EC_HOOK_TRACE = 0'] and cel['switches'] == '' and cel['version'] == 1, cel
+print('PASS: fifteen lists, recorded fork defaults retained, Dark Souls and Fallout lists kept separate, no key twice, '
       'every non-env key in the settings catalog, no Social Club DLL lines, no variant DLL switches')
 
 # Red Dead Redemption 2 from Steam: the owner's list of 2026-10-09 (build 463), line for line,
@@ -289,9 +295,11 @@ print('PASS: RDR2 (Steam) is the owner\'s 463 list plus the 466, 467, 470, 472, 
 match = block(lists_src, 'static func match(', '\n    }\n')
 assert 'rdr2AppID = 1174180, gta5EnhancedAppID = 3240220, ghostAppID = 2215430, godOfWarAppID = 1593500,\n               horizonZeroDawnAppID = 1151640, darkSoulsRemasteredAppID = 570940, darkSoulsIIIAppID = 374320' in lists_src
 assert 'static let alanWakeAppID = 108710' in lists_src
+assert 'static let celesteAppID = 504230' in lists_src
 assert 'let installFolder = last == steamFolder ? steamFolder : nil' in match
 assert 'installFolder == "red dead redemption 2"' in match and 'installFolder == "grand theft auto v enhanced"' in match
 assert 'installFolder == "alan wake"' in match and 'case "alanwake.exe":\n            return alanWake' in match
+assert 'installFolder == "celeste"' in match and 'case "celeste.exe":\n            return celeste' in match
 assert 'case "ghostoftsushima.exe":' in match and 'case "gow.exe":' in match and 'case "rdr2.exe", "playrdr2.exe":' in match
 assert 'case "horizonzerodawn.exe":\n            return horizonZeroDawn' in match
 assert 'if steamAppID == horizonZeroDawnAppID || installFolder == "horizon zero dawn" { return horizonZeroDawn }' in match
@@ -518,6 +526,8 @@ check(id(#"C:\Games\DarkSoulsRemastered.exe"#) == "dark-souls-remastered", "Dark
 check(id(#"C:\Games\DarkSoulsIII.exe"#) == "dark-souls-iii", "Dark Souls III by executable")
 check(id(steam + #"\Alan Wake"#, 108710) == "alan-wake" && id(steam + #"\Alan Wake"#) == "alan-wake", "Alan Wake from Steam")
 check(id(#"C:\Games\Alan Wake\AlanWake.exe"#) == "alan-wake", "Alan Wake by its program")
+check(id(steam + #"\Celeste"#, 504230) == "celeste" && id(steam + #"\Celeste"#) == "celeste", "Celeste from Steam")
+check(id(#"C:\Games\Celeste\Celeste.exe"#) == "celeste", "Celeste by its program")
 // Every other game: the standard list; a path that names nothing: none.
 check(R.recommendation(windowsPath: #"C:\Games\Foo\foo.exe"#, steamAppID: nil)?.id == "standard"
       && R.recommendation(windowsPath: steam + #"\Portal 2"#, steamAppID: 620)?.id == "standard", "every other game: the standard list")

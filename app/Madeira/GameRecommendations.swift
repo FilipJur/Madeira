@@ -642,6 +642,33 @@ enum GameRecommendations {
         env.MADEIRA_EC_HOOK_TRACE = 0
         """)
 
+    /// Celeste (Steam; 32-bit FNA/DX9, full controller): dx9-path.md §3 row
+    /// 11 puts it on the same stack as the playable Castle Crashers. This
+    /// list is the standard list plus the §4 recipe's memory keys, which
+    /// keep DX9 texture churn under the ~6.1 GB kill line (mem-footprint.md
+    /// §5.1 rows 7-8: broad swap coverage is already in the RDR2/HZD lists;
+    /// vram-mb is inert on the DX9 path but harmless, mem-graphics.md §7(a).3):
+    /// DXMT_MAX_VRAM_MB = 768 caps what this D3D9 title sees so its texture
+    /// pool stops growing sooner (mem-graphics.md §7(a).5). The pad keys
+    /// publish player 1 from the first frame with the Xbox layout for a game
+    /// that polls the pad at start (dx9-path.md §4; GamepadInput.swift:37,51).
+    /// Untested as a list.
+    static let celeste = GameRecommendation(
+        id: "celeste", title: "Celeste", version: 1,
+        config: """
+        # Madeira's recommended settings for Celeste (not tested yet).
+        # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        env.DXMT_MAX_VRAM_MB = 768
+        env.MADEIRA_PAD_EARLY_SLOT = 1
+        env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
+        env.MADEIRA_EC_HOOK_TRACE = 0
+        """)
+
     /// Every other game, and the Desktop (owner's decisions, 2026-10-12): most games
     /// the owner tried outside these lists closed at start until the [ec-hook]
     /// reporter was off. It reads code a game's protection rewrites at run time
@@ -661,7 +688,7 @@ enum GameRecommendations {
         """)
 
     static let all = [rdr2Steam, rdr2Other, gta5EnhancedSteam, gta5EnhancedOther, ghostOfTsushima, godOfWar, horizonZeroDawn,
-                      alanWake, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]
+                      alanWake, celeste, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]
 
     // MARK: Recognising a game
 
@@ -669,6 +696,7 @@ enum GameRecommendations {
     static let rdr2AppID = 1174180, gta5EnhancedAppID = 3240220, ghostAppID = 2215430, godOfWarAppID = 1593500,
                horizonZeroDawnAppID = 1151640, darkSoulsRemasteredAppID = 570940, darkSoulsIIIAppID = 374320
     static let alanWakeAppID = 108710
+    static let celesteAppID = 504230
     static let falloutNewVegasAppID = 22380, fallout3AppIDs: Set<Int> = [22300, 22370]   // Fallout 3, its GOTY Edition
     /// Black Ops II's campaign, Zombies and multiplayer.
     static let blackOps2AppIDs: Set<Int> = [202970, 212910, 202990]
@@ -696,6 +724,7 @@ enum GameRecommendations {
             if steamAppID == darkSoulsRemasteredAppID || installFolder == "dark souls remastered" { return darkSoulsRemastered }
             if steamAppID == darkSoulsIIIAppID || installFolder == "dark souls iii" { return darkSoulsIII }
             if steamAppID == alanWakeAppID || installFolder == "alan wake" { return alanWake }
+            if steamAppID == celesteAppID || installFolder == "celeste" { return celeste }
             if steamAppID == falloutNewVegasAppID || installFolder == "fallout new vegas" { return falloutNewVegas }
             if steamAppID.map(fallout3AppIDs.contains) == true || installFolder == "fallout 3"
                 || installFolder == "fallout 3 goty" { return fallout3 }
@@ -726,6 +755,8 @@ enum GameRecommendations {
             return darkSoulsIII
         case "alanwake.exe":
             return alanWake
+        case "celeste.exe":
+            return celeste
         case "falloutnv.exe":
             return falloutNewVegas
         case "fallout3.exe":
