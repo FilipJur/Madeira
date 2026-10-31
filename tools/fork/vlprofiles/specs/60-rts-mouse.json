@@ -1,0 +1,266 @@
+{
+  "name": "[x] RTS mouse",
+  "comment": "Strategy / RTS-lite. Design: touch-genre-profiles.md section 9: full-screen ABSMOUSEPAD (drag-select), arrow pad, zoom wheel, RMB order, hotkey folder (groups 1-5, build/hold/garrison), sticky SHIFT. Enlarged to >= 92 pt and moved inside the safe area. Gyro unused. In-game: enable edge pan and wheel zoom, bind groups 1-5 / B / H / G, low scroll speed.",
+  "profile": {
+    "synthesizePhysicalStick": false
+  },
+  "widgets": [
+    {
+      "cmd": "ABSMOUSEPAD",
+      "pos": [
+        0.5,
+        0.5
+      ],
+      "sizePt": [
+        850,
+        390
+      ],
+      "primary": true,
+      "comment": "Backdrop: whole screen, so the size and safe-area checks skip it. Drag on empty ground = box select (LMB held), holding at the screen edge engages the game's edge pan.",
+      "props": {
+        "mouseButtonAction": "leftButtonDown",
+        "backgroundAlpha": 0,
+        "borderAlpha": 0
+      }
+    },
+    {
+      "cmd": "ARROWPAD",
+      "label": "Pan",
+      "pos": [
+        0.1526,
+        0.7888
+      ],
+      "sizePt": [
+        130,
+        110
+      ],
+      "primary": true,
+      "comment": "Camera keys for games without edge pan."
+    },
+    {
+      "cmd": "WHEEL",
+      "label": "Zoom",
+      "pos": [
+        0.8744,
+        0.4835
+      ],
+      "sizePt": [
+        92,
+        130
+      ],
+      "comment": "Zoom. Design put it at x .94 (inside the right inset); moved.",
+      "props": {
+        "sensitivityFactorY": 0.7
+      }
+    },
+    {
+      "cmd": "MRIGHT",
+      "label": "Order",
+      "pos": [
+        0.8744,
+        0.8193
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Move / attack order at the cursor.",
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "id": "keys",
+      "cmd": "FOLDER",
+      "label": "Hotkeys",
+      "pos": [
+        0.8744,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "shape": "square",
+      "props": {
+        "revealMode": "exclusive",
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "PAUSE",
+      "label": "Pause",
+      "pos": [
+        0.1232,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "ESC",
+      "label": "Menu",
+      "pos": [
+        0.2406,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "SHIFT",
+      "label": "Queue",
+      "pos": [
+        0.311,
+        0.8193
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Sticky queue modifier: a toggle never fights the pad for the finger.",
+      "props": {
+        "buttonMode": "tapToToggle"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "1",
+      "label": "1",
+      "pos": [
+        0.3756,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "2",
+      "label": "2",
+      "pos": [
+        0.493,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "3",
+      "label": "3",
+      "pos": [
+        0.6103,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "4",
+      "label": "4",
+      "pos": [
+        0.7277,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "5",
+      "label": "5",
+      "pos": [
+        0.3756,
+        0.3919
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "B",
+      "label": "Build",
+      "pos": [
+        0.493,
+        0.3919
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "H",
+      "label": "Hold",
+      "pos": [
+        0.6103,
+        0.3919
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "keys",
+      "cmd": "G",
+      "label": "Garrison",
+      "pos": [
+        0.7277,
+        0.3919
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    }
+  ]
+}
