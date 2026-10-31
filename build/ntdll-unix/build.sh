@@ -9,6 +9,11 @@ SDK=$(xcrun --sdk iphoneos --show-sdk-path)
 OBJ_DIR="$BUILD_DIR/obj"
 APP_LIB="$REPO_ROOT/app/Madeira/libntdll_unix.a"
 
+# Fork: the Wine tree must carry patches/wine-opengl-winios.patch (32-bit
+# opengl32 wow64 thunks) before anything below compiles Wine sources; an
+# unpatched tree fails here instead of producing a broken opengl32 on device.
+"$REPO_ROOT/tools/fork/apply-wine-patches.sh"
+
 mkdir -p "$OBJ_DIR"
 
 # Optional Vulkan route; do not change the normal native build.

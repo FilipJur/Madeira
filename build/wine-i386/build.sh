@@ -42,6 +42,10 @@ LOG="$B/madeira-i386-build.log"
 
 [ -x "$STRIP" ] || { echo "llvm-mingw not found at $TC (docs/BUILDING.md)" >&2; exit 1; }
 
+# Fork: build the opengl32 unix side (below) from the patched tree; an
+# unpatched wine/ fails here instead of producing a broken 32-bit opengl32.
+"$R/tools/fork/apply-wine-patches.sh"
+
 # ---------------------------------------------------------------- configure
 # Its own tree, like build-arm64ec: reconfiguring build-macos with an extra
 # arch would regenerate every module Makefile the ntdll-unix build relies on.
