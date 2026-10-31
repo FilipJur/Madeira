@@ -1875,6 +1875,7 @@ static void ios_soft_report( const char *why )
 
 static void ios_bigres_note( void *base, size_t size );   /* defined below */
 
+static int ios_safe_read( uintptr_t addr, void *out, size_t len );
 static int ios_safe_read64( uint64_t addr, uint64_t *out );
 static void ios_jumbo_census( void *hint, size_t size, void *result, unsigned st )
 {
@@ -27358,6 +27359,24 @@ BOOL virtual_check_buffer_for_read( const void *ptr, SIZE_T size )
     if (!size) return TRUE;
     if (!ptr) return FALSE;
 
+#ifdef WINE_IOS
+    /* madeira: probe the first and last byte of every page through the kernel
+     * instead of touching it. A __TRY load faults the host on a reserved page
+     * that never materialises (SIGBUS that bus_handler hands to the guest
+     * without honouring the __TRY; see ios_ec_hook_peek). A file page can be
+     * readable at its start and BUS at its end, hence both ends of each page.
+     * ios_safe_read() is the ios_safe_read64() shape on one byte. */
+    while (size)      /* first and last byte of every page, through the kernel */
+    {
+        const char *p = ptr;
+        SIZE_T n = min( size, host_page_size - ((UINT_PTR)ptr & host_page_mask) );
+        char byte = 0;
+        if (!ios_safe_read( (uintptr_t)p, &byte, 1 ) ||
+            (n > 1 && !ios_safe_read( (uintptr_t)p + n - 1, &byte, 1 ))) return FALSE;
+        ptr = p + n; size -= n;
+    }
+    return TRUE;
+#else
     __TRY
     {
         volatile const char *p = ptr;
@@ -27379,6 +27398,7 @@ BOOL virtual_check_buffer_for_read( const void *ptr, SIZE_T size )
     }
     __ENDTRY
     return TRUE;
+#endif
 }
 
 
