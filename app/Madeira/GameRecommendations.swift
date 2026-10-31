@@ -566,13 +566,24 @@ enum GameRecommendations {
     /// 00B57AA9 right after the game built a face, on Madeira's own card name and
     /// driver, which give it the basic render path (Shader Package 2). "Older NVIDIA
     /// card (Direct3D 9)" reports the card and driver the game knows (Shader Package
-    /// 13), as the d3d9.dll wrapper its players install does. The config is the
-    /// standard list, which the game ran with.
+    /// 13), as the d3d9.dll wrapper its players install does. Version 2 keeps that
+    /// switch and adds the §4 recipe's memory keys, which keep DX9 texture churn
+    /// under the ~6.1 GB kill line (mem-footprint.md §5.1 rows 7-8: broad swap
+    /// coverage is already in the RDR2/HZD lists; vram-mb is inert on the DX9 path
+    /// but harmless, mem-graphics.md §7(a).3): DXMT_MAX_VRAM_MB = 768 caps what
+    /// this D3D9 title sees so its texture pool stops growing sooner
+    /// (mem-graphics.md §7(a).5).
     static let falloutNewVegas = GameRecommendation(
-        id: "fallout-new-vegas", title: "Fallout: New Vegas", version: 1,
+        id: "fallout-new-vegas", title: "Fallout: New Vegas", version: 2,
         config: """
         # Madeira's recommended settings for Fallout: New Vegas.
         # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        env.DXMT_MAX_VRAM_MB = 768
         env.MADEIRA_EC_HOOK_TRACE = 0
         """,
         olderNvidia: true)

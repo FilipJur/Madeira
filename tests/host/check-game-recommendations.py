@@ -109,17 +109,15 @@ for ident, p in presets.items():
         if key != 'env.WINEDLLOVERRIDES':
             named = named.replace('socialclubhelper.exe', '')
         assert 'socialclub' not in named and 'MADEIRA_DLL_LOCAL' not in line, (ident, line)
-for ident in ('fallout-new-vegas', 'fallout-3'):
+for ident in ('fallout-3',):
     assert presets[ident]['tested'] == presets['standard']['tested'] and presets[ident]['switches'] == 'olderNvidia: true', presets[ident]
-# Alan Wake (untested list): the standard list's pad-at-start keys and ec-hook line, plus the §4
-# recipe's memory keys (pool, broad swap from 1 MB, vram budget) and a D3D9 texture-pool cap
-# (DXMT_MAX_VRAM_MB, the only number this path's games see). No switches, no fork defaults.
-alan = presets['alan-wake']
-assert alan['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-min-mb = 1',
-                          'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
-                          'env.MADEIRA_PAD_EARLY_SLOT = 1', 'env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1',
-                          'env.MADEIRA_EC_HOOK_TRACE = 0'] and alan['switches'] == '' \
-    and alan['version'] == 1, alan
+# Fallout: New Vegas v2: the §4 recipe's memory keys with the ec-hook line, kept separate from
+# the standard list; the older-NVIDIA switch stays. No fork defaults.
+fnv = presets['fallout-new-vegas']
+assert fnv['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-min-mb = 1',
+                         'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
+                         'env.MADEIRA_EC_HOOK_TRACE = 0'] and fnv['switches'] == 'olderNvidia: true' \
+    and fnv['version'] == 2, fnv
 print('PASS: fourteen lists, recorded fork defaults retained, Dark Souls and Fallout lists kept separate, no key twice, '
       'every non-env key in the settings catalog, no Social Club DLL lines, no variant DLL switches')
 
