@@ -1,0 +1,219 @@
+{
+  "name": "[x] Third-person pad",
+  "comment": "Third-person action, controller-native. Design: touch-genre-profiles.md section 5, moved inside the safe area and enlarged to >= 92 pt (the design's diamond at x .815-.955 and 45-60 pt keys did not fit). Gyro = touch-gyro.md preset B: stick output, yawPitchToRightStick, yaw 0.20 / pitch 0.12, gyroToStickMinOffset 0. Preset B's 'gyro only while aiming' (GYRO+MRIGHT, regular) needs a mouse button this pad profile lacks, so the GYRO widget is a toggle.",
+  "profile": {
+    "mapGyroTo": "stick",
+    "yawPitchToRightStick": true,
+    "rollToLeftStick": false,
+    "gyroSensitivityYaw": 0.2,
+    "gyroSensitivityPitch": 0.12,
+    "gyroToStickMinOffset": 0,
+    "useBuiltinGyro": true,
+    "synthesizePhysicalStick": false
+  },
+  "widgets": [
+    {
+      "cmd": "LSPAD",
+      "pos": [
+        0.1819,
+        0.7125
+      ],
+      "sizePt": [
+        180,
+        170
+      ],
+      "primary": true,
+      "props": {
+        "touchPointAnchored": false,
+        "minStickOffset": 1200,
+        "sensitivityFactorX": 1.0,
+        "sensitivityFactorY": 1.0
+      }
+    },
+    {
+      "cmd": "RSPAD",
+      "pos": [
+        0.534,
+        0.5471
+      ],
+      "sizePt": [
+        170,
+        150
+      ],
+      "primary": true,
+      "comment": "Camera stick. The design had it at x .68 under the diamond; the diamond now sits at the right inset, so the pad moved inboard.",
+      "props": {
+        "minStickOffset": 1200,
+        "sensitivityFactorX": 1.0,
+        "sensitivityFactorY": 1.0
+      }
+    },
+    {
+      "cmd": "DPAD",
+      "label": "Items",
+      "pos": [
+        0.135,
+        0.2545
+      ],
+      "sizePt": [
+        110,
+        110
+      ],
+      "comment": "Quick items."
+    },
+    {
+      "cmd": "OSCSTART",
+      "label": "Pause",
+      "pos": [
+        0.2641,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "GYRO",
+      "label": "Gyro",
+      "pos": [
+        0.3815,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Gyro as an ADS layer on top of the right stick (stick output, composed with the touch stick). A hold-while-aiming variant is not used: motion widgets default to tapToToggle, so this is a one-tap switch."
+    },
+    {
+      "cmd": "LB",
+      "label": "LB",
+      "pos": [
+        0.4988,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "RB",
+      "label": "RB",
+      "pos": [
+        0.6162,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "LT",
+      "label": "LT",
+      "pos": [
+        0.7336,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Digital trigger; use LTPAD for games that read analog.",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "RT",
+      "label": "RT",
+      "pos": [
+        0.8509,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Digital trigger; use RTPAD for games that read analog.",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "OSCY",
+      "label": "Y",
+      "pos": [
+        0.7923,
+        0.458
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "slideToToggle"
+      }
+    },
+    {
+      "cmd": "OSCX",
+      "label": "X",
+      "pos": [
+        0.7077,
+        0.6412
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Chord anchor: stays down when the thumb slides off.",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "OSCB",
+      "label": "B",
+      "pos": [
+        0.8768,
+        0.6412
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "slideToToggle"
+      }
+    },
+    {
+      "cmd": "OSCA",
+      "label": "A",
+      "pos": [
+        0.7923,
+        0.8244
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    }
+  ]
+}

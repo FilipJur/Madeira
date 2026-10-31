@@ -1,0 +1,283 @@
+{
+  "name": "[x] FPS mouse",
+  "comment": "PC FPS with mouse+keyboard native (Portal 2, Half-Life 2). Design: docs/fork/research/touch-genre-profiles.md section 4, enlarged to >= 92 pt (15 mm) and moved inside the 59/59/8/21 pt safe area (the design's 54 pt keys and its top row at x .60-.92 did not fit). Gyro = touch-gyro.md preset A (always-on aim, mouse output): mapGyroTo mouse, yaw 0.45, pitch 0.30. Not placed: preset A's GYROPAUSE ratchet (no free 92 pt slot, the design has none). In-game: mouse smoothing/accel off, sensitivity ~2.0-2.5; Portal 2 has no sprint/reload.",
+  "profile": {
+    "mapGyroTo": "mouse",
+    "gyroSensitivityYaw": 0.45,
+    "gyroSensitivityPitch": 0.3,
+    "gyroToStickMinOffset": 0,
+    "useBuiltinGyro": true,
+    "synthesizePhysicalStick": false
+  },
+  "widgets": [
+    {
+      "cmd": "WASDPAD-SHIFT",
+      "pos": [
+        0.1878,
+        0.7328
+      ],
+      "sizePt": [
+        190,
+        160
+      ],
+      "primary": true,
+      "comment": "8-way digital WASD; SHIFT is the sprint key (combo[0]) held past sprintKeyThreshold of the rim (0.45*300*0.5 = 67 pt).",
+      "props": {
+        "sprintKeyThreshold": 0.45,
+        "sprintKeyActionType": "hold",
+        "sensitivityFactorX": 1.0,
+        "sensitivityFactorY": 1.0
+      }
+    },
+    {
+      "cmd": "MOUSEPAD",
+      "pos": [
+        0.7688,
+        0.4758
+      ],
+      "sizePt": [
+        230,
+        170
+      ],
+      "primary": true,
+      "comment": "Look pad: drag = aim, tap = LMB click, 2-finger tap = RMB, 2-finger drag = scroll (hovering).",
+      "props": {
+        "mouseButtonAction": "hovering",
+        "slideThreshold": 8,
+        "sensitivityFactorX": 1.6,
+        "sensitivityFactorY": 1.6
+      }
+    },
+    {
+      "cmd": "MLEFT-MOUSEPAD",
+      "label": "Fire",
+      "pos": [
+        0.8275,
+        0.8193
+      ],
+      "sizePt": [
+        100,
+        100
+      ],
+      "shape": "square",
+      "primary": true,
+      "comment": "Button+pad hybrid (button first): press = LMB down, drag past slideThreshold = slower mouse look while firing.",
+      "props": {
+        "slideThreshold": 4,
+        "sensitivityFactorX": 0.8,
+        "sensitivityFactorY": 0.8,
+        "autoTapInterval": 0,
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "E",
+      "label": "Use",
+      "pos": [
+        0.642,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "R",
+      "label": "Reload",
+      "pos": [
+        0.7594,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "MRIGHT",
+      "label": "ADS",
+      "pos": [
+        0.8768,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Variant for ADS-capable games: change cmd to MRIGHT-GYRO (zoom + gyro on one tap; forced toggle).",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "id": "weapons",
+      "cmd": "FOLDER",
+      "label": "Weapons",
+      "pos": [
+        0.1232,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "shape": "square",
+      "props": {
+        "revealMode": "exclusive",
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "GYRO",
+      "label": "Gyro",
+      "pos": [
+        0.2406,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Gyro on/off. Hold-to-gyro is not used: motion widgets default to tapToToggle in the app, so this is a toggle. Widget yaw/pitch factors stay 1.0; the strength is the profile-level 0.45/0.30 (touch-gyro.md preset A), the design's 0.40/0.30 widget factors would compound with it."
+    },
+    {
+      "cmd": "CTRL",
+      "label": "Crouch",
+      "pos": [
+        0.1232,
+        0.3868
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Sticky crouch.",
+      "props": {
+        "buttonMode": "tapToToggle"
+      }
+    },
+    {
+      "cmd": "SPACE",
+      "label": "Jump",
+      "pos": [
+        0.2406,
+        0.3868
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "props": {
+        "buttonMode": "slideToToggle"
+      }
+    },
+    {
+      "parent": "weapons",
+      "cmd": "1",
+      "label": "1",
+      "pos": [
+        0.358,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "weapons",
+      "cmd": "2",
+      "label": "2",
+      "pos": [
+        0.4754,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "weapons",
+      "cmd": "3",
+      "label": "3",
+      "pos": [
+        0.358,
+        0.3919
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "weapons",
+      "cmd": "4",
+      "label": "4",
+      "pos": [
+        0.4754,
+        0.3919
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "weapons",
+      "cmd": "5",
+      "label": "5",
+      "pos": [
+        0.358,
+        0.6463
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "parent": "weapons",
+      "cmd": "Q",
+      "label": "Last",
+      "pos": [
+        0.4754,
+        0.6463
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Last weapon.",
+      "props": {
+        "buttonMode": "regular"
+      }
+    }
+  ]
+}

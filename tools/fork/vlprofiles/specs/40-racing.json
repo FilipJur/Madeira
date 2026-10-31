@@ -1,0 +1,164 @@
+{
+  "name": "[x] Racing",
+  "comment": "Racing with tilt steering. Design: touch-genre-profiles.md section 7, enlarged to >= 92 pt and moved inside the safe area. Gyro = touch-gyro.md lean-steer preset: mapGyroTo stick, rollToLeftStick, gyroSensitivityRoll 1.0, rollFactor 1.0, gyroToStickMinOffset 0 (MotionHandler.swift:528: full left stick at +-60 deg of lean). CONFLICT: the genre design wants full lock at +-30 deg, which needs gyroSensitivityRoll 2.0 (the same formula gives 50 % at 30 deg with 1.0); fix by setting 2.0 here. Left at the preset's 1.0. In game: steering linearity/deadzone 0; calibrate by holding the resting pose, then tap Steer.",
+  "profile": {
+    "mapGyroTo": "stick",
+    "rollToLeftStick": true,
+    "yawPitchToRightStick": false,
+    "gyroSensitivityRoll": 1.0,
+    "gyroToStickMinOffset": 0,
+    "useBuiltinGyro": true,
+    "synthesizePhysicalStick": false
+  },
+  "widgets": [
+    {
+      "cmd": "GYRO",
+      "label": "Steer",
+      "pos": [
+        0.358,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Tilt steering: toggle, tilting the phone relative to the pose at enable time maps to left-stick X (rollToLeftStick). Recentre the phone, then tap.",
+      "props": {
+        "rollFactor": 1.0
+      }
+    },
+    {
+      "cmd": "LSPAD",
+      "label": "Trim",
+      "pos": [
+        0.1761,
+        0.7252
+      ],
+      "sizePt": [
+        160,
+        140
+      ],
+      "primary": true,
+      "comment": "Steering trim, added to the gyro value; also the fallback with gyro off.",
+      "props": {
+        "sensitivityFactorX": 0.8,
+        "sensitivityFactorY": 0.8
+      }
+    },
+    {
+      "cmd": "LTPAD",
+      "label": "Brake",
+      "pos": [
+        0.7218,
+        0.6361
+      ],
+      "sizePt": [
+        110,
+        217
+      ],
+      "primary": true,
+      "comment": "Analog brake: vertical offset -> 0-255.",
+      "props": {
+        "sensitivityFactorY": 0.7
+      }
+    },
+    {
+      "cmd": "RTPAD",
+      "label": "Gas",
+      "pos": [
+        0.8627,
+        0.6361
+      ],
+      "sizePt": [
+        110,
+        217
+      ],
+      "primary": true,
+      "comment": "Analog throttle: vertical offset -> 0-255.",
+      "props": {
+        "sensitivityFactorY": 0.7
+      }
+    },
+    {
+      "cmd": "OSCSTART",
+      "label": "Pause",
+      "pos": [
+        0.2406,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "LB",
+      "label": "Down",
+      "pos": [
+        0.4754,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Gear down.",
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "OSCA",
+      "label": "Hbrake",
+      "pos": [
+        0.5927,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Handbrake.",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "RB",
+      "label": "Up",
+      "pos": [
+        0.7101,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Gear up.",
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "OSCY",
+      "label": "Look",
+      "pos": [
+        0.8275,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Look back / camera.",
+      "props": {
+        "buttonMode": "regular"
+      }
+    }
+  ]
+}

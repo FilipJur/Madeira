@@ -1,0 +1,193 @@
+{
+  "name": "[x] Platformer pad",
+  "comment": "Platformer / puzzle with controller (Hollow Knight, Portal 2 pad mode). Design: touch-genre-profiles.md section 6, enlarged to >= 92 pt and moved inside the safe area. Face buttons keep each game's own default mapping (A jump, X attack/use, B focus/crouch, Y dream nail/partner view). No gyro widget anywhere, so gyro fields are irrelevant.",
+  "profile": {
+    "synthesizePhysicalStick": false
+  },
+  "widgets": [
+    {
+      "cmd": "DPAD",
+      "pos": [
+        0.1585,
+        0.7379
+      ],
+      "sizePt": [
+        140,
+        140
+      ],
+      "primary": true,
+      "comment": "Primary movement (digital precision)."
+    },
+    {
+      "cmd": "LSPAD",
+      "pos": [
+        0.3345,
+        0.7379
+      ],
+      "sizePt": [
+        140,
+        140
+      ],
+      "comment": "Alternative analog stick for stick players.",
+      "props": {
+        "minStickOffset": 2000
+      }
+    },
+    {
+      "cmd": "OSCSTART",
+      "label": "Pause",
+      "pos": [
+        0.2406,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "OSCSELECT",
+      "label": "Inv",
+      "pos": [
+        0.358,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "LB",
+      "label": "Map",
+      "pos": [
+        0.4754,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "LT",
+      "label": "LT",
+      "pos": [
+        0.5927,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Super dash (Hollow Knight) / orange portal (Portal 2).",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "RT",
+      "label": "RT",
+      "pos": [
+        0.7101,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "primary": true,
+      "comment": "Dash (Hollow Knight) / blue portal (Portal 2).",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "RB",
+      "label": "Cast",
+      "pos": [
+        0.8275,
+        0.1374
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "regular"
+      }
+    },
+    {
+      "cmd": "OSCY",
+      "label": "Y",
+      "pos": [
+        0.7923,
+        0.458
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "slideToToggle"
+      }
+    },
+    {
+      "cmd": "OSCX",
+      "label": "X",
+      "pos": [
+        0.7077,
+        0.6412
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "comment": "Chord anchor: stays down when the thumb slides off.",
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    },
+    {
+      "cmd": "OSCB",
+      "label": "B",
+      "pos": [
+        0.8768,
+        0.6412
+      ],
+      "sizePt": [
+        92,
+        92
+      ],
+      "props": {
+        "buttonMode": "slideToToggle"
+      }
+    },
+    {
+      "cmd": "OSCA",
+      "label": "A",
+      "pos": [
+        0.7923,
+        0.8244
+      ],
+      "sizePt": [
+        96,
+        96
+      ],
+      "primary": true,
+      "props": {
+        "buttonMode": "slideAndHold"
+      }
+    }
+  ]
+}
