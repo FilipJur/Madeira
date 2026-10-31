@@ -25,8 +25,9 @@
 #                                  without it (RocketLeague.exe imports it)
 # and GAME_MODULES below: builtins games or their installers import that the
 # farm does not have (without one the loader stops with STATUS_DLL_NOT_FOUND
-# before the program runs). Every module built here links its delay imports
-# as plain imports (see UNDELAY below).
+# before the program runs). Every module in the default list below links its
+# delay imports as plain imports (see UNDELAY); the farm build passes
+# UNDELAY=0 for the rest (upstream #496).
 # Pass the tracked modules a change touches (kernelbase, shell32, xinput1_1 ...
 # xinput1_4, ...) to rebuild them. ntdll is padded as well: build-ntdll.sh.
 #
@@ -96,6 +97,10 @@ GAME_MODULES="msvcr70 msvcr71 msvcr80 msvcr90 msvcr100 msvcrt20 msvcrt40 msvcirt
 # shellcheck disable=SC2086,SC2046 # the lists are split on purpose
 [ $# -gt 0 ] || set -- cryptsp d3dx11_43 msvcp110 msvcr110 xaudio2_7 tbs wintypes wmadmod $GAME_MODULES \
     $(grep -v '^#' "$R/build/wine-pe/farm-modules.txt")
+# LIST_DEFAULT=1 prints the modules that would be built (one per line) and
+# exits: the single source of truth for the farm build split (which modules
+# keep plain imports) shared with build/windows-runtime.
+[ "${LIST_DEFAULT:-0}" = 0 ] || { printf '%s\n' "$@"; exit 0; }
 [ -x "$STRIP" ] || { echo "llvm-mingw not found at $TC (docs/BUILDING.md)" >&2; exit 1; }
 
 targets=()
@@ -128,7 +133,7 @@ mkdir -p "$B/dlls/stdole2.tlb"
 [ -e "$B/dlls/stdole2.tlb/aarch64-windows" ] || [ -L "$B/dlls/stdole2.tlb/aarch64-windows" ] \
     || ln -s arm64ec-windows "$B/dlls/stdole2.tlb/aarch64-windows"
 
-# UNDELAY: every module built here links its delay imports as plain imports.
+# UNDELAY: every module in the default list links its delay imports as plain imports.
 # lld's ARM64EC delay-load helper stub is x64 code inside .text (lea rax,
 # __imp_aux_X; jmp __tailMerge), and the JIT-pool copy Madeira runs a hybrid
 # module from relocates the delay IAT to the stub's pool address, so the first
@@ -146,6 +151,13 @@ restore_makefiles() {
 }
 trap restore_makefiles EXIT
 in_farm() { [ -n "$(find "$DEST" -maxdepth 1 -iname "$1.dll" 2>/dev/null)" ]; }
+# A stale link output from an earlier run with different delay imports must
+# not satisfy make: remove delay-import module targets so this run relinks.
+for m in "$@"; do
+    mk="$R/wine/dlls/$m/Makefile.in"
+    [ -f "$mk" ] && grep -q '^DELAYIMPORTS' "$mk" || continue
+    rm -f "$B/dlls/$m/arm64ec-windows/$(sed -n 's/^MODULE[[:space:]]*=[[:space:]]*//p' "$mk")"
+done
 if [ "${UNDELAY:-1}" != 0 ]; then
     for m in "$@"; do
         mk="$R/wine/dlls/$m/Makefile.in"
@@ -160,7 +172,6 @@ if [ "${UNDELAY:-1}" != 0 ]; then
         cp "$mk" "$backup/$m"
         undelayed+=("$m")
         sed -i.bak -e '/^DELAYIMPORTS[[:space:]]*=/d' -e "s/^\(IMPORTS[[:space:]]*=.*\)\$/\1 $delayed/" "$mk" && rm -f "$mk.bak"
-        rm -f "$B/dlls/$m/arm64ec-windows/$(sed -n 's/^MODULE[[:space:]]*=[[:space:]]*//p' "$mk")"   # an earlier link with the delay imports must not satisfy make
     done
     [ ${#undelayed[@]} -eq 0 ] || echo "delay imports linked as plain imports: ${undelayed[*]}"
 fi

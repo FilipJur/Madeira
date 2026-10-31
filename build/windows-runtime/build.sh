@@ -12,7 +12,20 @@ while IFS= read -r name; do
     [ "$name" = ntdll ] || modules+=("$name")
 done < <(python3 "$R/build/windows-runtime/targets.py" arm64ec list)
 [ ${#modules[@]} -gt 0 ] || { echo 'No ARM64EC Wine modules selected' >&2; exit 1; }
-bash "$R/build/wine-pe/build-modules.sh" "${modules[@]}"
+# Default undelay modules keep plain imports (Rockstar NoExec #271; plain
+# wmvcore/winegstreamer for the media gate, cf. PR #496); the rest keep
+# Wine's delay imports so ucrtbase/msvcrt no longer import advapi32/user32
+# eagerly (upstream issue #495).
+plain=() delayed=()
+undelayed=" $(LIST_DEFAULT=1 bash "$R/build/wine-pe/build-modules.sh" | tr '\n' ' ') "
+for name in "${modules[@]}"; do
+    case "$undelayed" in
+        *" $name "*) plain+=("$name") ;;
+        *) delayed+=("$name") ;;
+    esac
+done
+[ ${#plain[@]} -eq 0 ] || bash "$R/build/wine-pe/build-modules.sh" "${plain[@]}"
+[ ${#delayed[@]} -eq 0 ] || UNDELAY=0 bash "$R/build/wine-pe/build-modules.sh" "${delayed[@]}"
 bash "$R/build/wine-pe/build-ntdll.sh"
 python3 "$R/build/windows-runtime/targets.py" aarch64 install
 # Vulkan Wine DLLs are isolated from the default Metal farm.
