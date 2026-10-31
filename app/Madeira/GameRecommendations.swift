@@ -566,13 +566,24 @@ enum GameRecommendations {
     /// 00B57AA9 right after the game built a face, on Madeira's own card name and
     /// driver, which give it the basic render path (Shader Package 2). "Older NVIDIA
     /// card (Direct3D 9)" reports the card and driver the game knows (Shader Package
-    /// 13), as the d3d9.dll wrapper its players install does. The config is the
-    /// standard list, which the game ran with.
+    /// 13), as the d3d9.dll wrapper its players install does. Version 2 keeps that
+    /// switch and adds the §4 recipe's memory keys, which keep DX9 texture churn
+    /// under the ~6.1 GB kill line (mem-footprint.md §5.1 rows 7-8: broad swap
+    /// coverage is already in the RDR2/HZD lists; vram-mb is inert on the DX9 path
+    /// but harmless, mem-graphics.md §7(a).3): DXMT_MAX_VRAM_MB = 768 caps what
+    /// this D3D9 title sees so its texture pool stops growing sooner
+    /// (mem-graphics.md §7(a).5).
     static let falloutNewVegas = GameRecommendation(
-        id: "fallout-new-vegas", title: "Fallout: New Vegas", version: 1,
+        id: "fallout-new-vegas", title: "Fallout: New Vegas", version: 2,
         config: """
         # Madeira's recommended settings for Fallout: New Vegas.
         # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        env.DXMT_MAX_VRAM_MB = 768
         env.MADEIRA_EC_HOOK_TRACE = 0
         """,
         olderNvidia: true)
@@ -603,6 +614,162 @@ enum GameRecommendations {
         env.MADEIRA_EC_HOOK_TRACE = 0
         """)
 
+    /// Alan Wake (Steam; 32-bit D3D9, full controller): dx9-path.md §3 row 5
+    /// and §7.1 call it the working reference, playable on the standard list.
+    /// This list is the standard list plus the §4 recipe's memory keys, which
+    /// keep DX9 texture churn under the ~6.1 GB kill line (mem-footprint.md
+    /// §5.1 rows 7-8: broad swap coverage is already in the RDR2/HZD lists;
+    /// vram-mb is inert on the DX9 path but harmless, mem-graphics.md §7(a).3):
+    /// DXMT_MAX_VRAM_MB = 768 caps what this D3D9 title sees so its texture
+    /// pool stops growing sooner (mem-graphics.md §7(a).5). The pad keys
+    /// publish player 1 from the first frame with the Xbox layout for a game
+    /// that polls the pad at start (dx9-path.md §4; GamepadInput.swift:37,51).
+    /// For exclusive fullscreen add windowed = 0 by hand (dx9-path.md §7.1;
+    /// not a catalog key, so no list may ship it). Untested as a list.
+    static let alanWake = GameRecommendation(
+        id: "alan-wake", title: "Alan Wake", version: 1,
+        config: """
+        # Madeira's recommended settings for Alan Wake (not tested yet).
+        # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        env.DXMT_MAX_VRAM_MB = 768
+        env.MADEIRA_PAD_EARLY_SLOT = 1
+        env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
+        env.MADEIRA_EC_HOOK_TRACE = 0
+        """)
+
+    /// Celeste (Steam; 32-bit FNA/DX9, full controller): dx9-path.md §3 row
+    /// 11 puts it on the same stack as the playable Castle Crashers. This
+    /// list is the standard list plus the §4 recipe's memory keys, which
+    /// keep DX9 texture churn under the ~6.1 GB kill line (mem-footprint.md
+    /// §5.1 rows 7-8: broad swap coverage is already in the RDR2/HZD lists;
+    /// vram-mb is inert on the DX9 path but harmless, mem-graphics.md §7(a).3):
+    /// DXMT_MAX_VRAM_MB = 768 caps what this D3D9 title sees so its texture
+    /// pool stops growing sooner (mem-graphics.md §7(a).5). The pad keys
+    /// publish player 1 from the first frame with the Xbox layout for a game
+    /// that polls the pad at start (dx9-path.md §4; GamepadInput.swift:37,51).
+    /// Untested as a list.
+    static let celeste = GameRecommendation(
+        id: "celeste", title: "Celeste", version: 1,
+        config: """
+        # Madeira's recommended settings for Celeste (not tested yet).
+        # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        env.DXMT_MAX_VRAM_MB = 768
+        env.MADEIRA_PAD_EARLY_SLOT = 1
+        env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
+        env.MADEIRA_EC_HOOK_TRACE = 0
+        """)
+
+    /// Ori and the Blind Forest (Steam; 32-bit D3D11 Unity, full
+    /// controller): dx9-path.md §3 row 9 puts it through the same DXMT
+    /// i386 d3d11 as the proven 64-bit D3D11 path. This list is the
+    /// standard list plus the §4 recipe's memory keys, which keep texture
+    /// churn under the ~6.1 GB kill line (mem-footprint.md §5.1 rows 7-8:
+    /// broad swap coverage is already in the RDR2/HZD lists; vram-mb is
+    /// inert on this path for Unity titles that read the budget once but
+    /// harmless, mem-graphics.md §7(a).3): DXMT_MAX_VRAM_MB = 768 caps what
+    /// the D3D9-facing GetAvailableTextureMem path would see
+    /// (mem-graphics.md §7(a).5). The pad keys publish player 1 from the
+    /// first frame with the Xbox layout for a game that polls the pad at
+    /// start (dx9-path.md §4; GamepadInput.swift:37,51). Untested as a list.
+    static let oriBlindForest = GameRecommendation(
+        id: "ori-blind-forest", title: "Ori and the Blind Forest", version: 1,
+        config: """
+        # Madeira's recommended settings for Ori and the Blind Forest (not tested yet).
+        # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        env.DXMT_MAX_VRAM_MB = 768
+        env.MADEIRA_PAD_EARLY_SLOT = 1
+        env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
+        env.MADEIRA_EC_HOOK_TRACE = 0
+        """)
+
+    /// Dark Souls II (Steam; 32-bit D3D9, full controller): dx9-path.md §3
+    /// row 7; the vanilla exe is untested but its 64-bit sibling's failure
+    /// mode has a known line, 379 s of play with it against 34 s without
+    /// (dx9-path.md §3 row 7 citing the SOTFS evidence). This list is the
+    /// standard list plus the §4 recipe's memory keys, which keep DX9
+    /// texture churn under the ~6.1 GB kill line (mem-footprint.md §5.1
+    /// rows 7-8; vram-mb is inert on the DX9 path but harmless,
+    /// mem-graphics.md §7(a).3): DXMT_MAX_VRAM_MB = 768 caps what this D3D9
+    /// title sees so its texture pool stops growing sooner
+    /// (mem-graphics.md §7(a).5), and env.MADEIRA_X64_IMAGE_NOCOPY = 1
+    /// runs pure-x64 images in place instead of copying them into the JIT
+    /// pool (dx9-path.md §4, last bullet; Dark Souls III's list carries it
+    /// for the same reason). The pad keys publish player 1 from the first
+    /// frame with the Xbox layout (dx9-path.md §4; GamepadInput.swift:37,51).
+    /// Untested as a list.
+    static let darkSoulsII = GameRecommendation(
+        id: "dark-souls-ii", title: "Dark Souls II", version: 1,
+        config: """
+        # Madeira's recommended settings for Dark Souls II (not tested yet).
+        # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        env.DXMT_MAX_VRAM_MB = 768
+        env.MADEIRA_X64_IMAGE_NOCOPY = 1
+        env.MADEIRA_PAD_EARLY_SLOT = 1
+        env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
+        env.MADEIRA_EC_HOOK_TRACE = 0
+        """)
+
+    /// L.A. Noire (Steam; 32-bit D3D9 default, -dx11 opts into D3D11;
+    /// full controller in game, not in the launcher): dx9-path.md §3 row 1,
+    /// untested upstream and highest-risk of the owned set because every
+    /// digital copy requires the Rockstar Games Launcher / Social Club.
+    /// Prefer LANoire.exe directly (bypassing LANLauncher.exe and the RG
+    /// Launcher) with -dx11 and -windowed on its command line (dx9-path.md
+    /// §3 row 1); flags live in the launch args, not in this list. This
+    /// list is the standard list plus the §4 recipe's memory keys, which
+    /// keep DX9 texture churn under the ~6.1 GB kill line
+    /// (mem-footprint.md §5.1 rows 7-8: broad swap coverage; vram-mb is
+    /// inert on the DX9 path but harmless, mem-graphics.md §7(a).3):
+    /// DXMT_MAX_VRAM_MB = 768 caps what this D3D9 title sees
+    /// (mem-graphics.md §7(a).5). The launcher lines are copied from
+    /// RDR2's list above (dx9-path.md §4, Rockstar launcher path): the RG
+    /// Launcher is the same Launcher.exe + SocialClubHelper.exe pair, so
+    /// the keep-alive names the game exe, the DXMT rings stay small for
+    /// the pair, Social Club's Chromium is single-process
+    /// (env.MADEIRA_SC_CEF = 1), and avail-phys reports headroom so
+    /// Chromium frees caches. Untested as a list, and the launcher path
+    /// may still fail (GTA IV's installer report, dx9-path.md §4).
+    static let laNoire = GameRecommendation(
+        id: "la-noire", title: "L.A. Noire", version: 1,
+        config: """
+        # Madeira's recommended settings for L.A. Noire (not tested yet).
+        # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        avail-phys = 1
+        env.DXMT_MAX_VRAM_MB = 768
+        env.MADEIRA_DOCK_KEEP_ALIVE = Launcher.exe;LANoire.exe
+        env.DXMT_SMALL_RINGS = Launcher.exe;SocialClubHelper.exe
+        env.MADEIRA_SC_PA_POOLS = 2
+        env.MADEIRA_SPAWN_BLOCK = RockstarErrorHandler;.be\\vc_redist
+        env.MADEIRA_PIN_GRAPHICS_DLLS = 1
+        env.WINEDLLOVERRIDES = video64=
+        env.MADEIRA_SC_CEF = 1
+        env.MADEIRA_EC_HOOK_TRACE = 0
+        """)
     /// Every other game, and the Desktop (owner's decisions, 2026-10-12): most games
     /// the owner tried outside these lists closed at start until the [ec-hook]
     /// reporter was off. It reads code a game's protection rewrites at run time
@@ -622,13 +789,18 @@ enum GameRecommendations {
         """)
 
     static let all = [rdr2Steam, rdr2Other, gta5EnhancedSteam, gta5EnhancedOther, ghostOfTsushima, godOfWar, horizonZeroDawn,
-                      darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]
+                      laNoire, alanWake, celeste, oriBlindForest, darkSoulsII, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]
 
     // MARK: Recognising a game
 
     /// Steam App IDs.
     static let rdr2AppID = 1174180, gta5EnhancedAppID = 3240220, ghostAppID = 2215430, godOfWarAppID = 1593500,
                horizonZeroDawnAppID = 1151640, darkSoulsRemasteredAppID = 570940, darkSoulsIIIAppID = 374320
+    static let darkSoulsIIAppID = 236430
+    static let alanWakeAppID = 108710
+    static let oriBlindForestAppID = 261570
+    static let celesteAppID = 504230
+    static let laNoireAppID = 110800
     static let falloutNewVegasAppID = 22380, fallout3AppIDs: Set<Int> = [22300, 22370]   // Fallout 3, its GOTY Edition
     /// Black Ops II's campaign, Zombies and multiplayer.
     static let blackOps2AppIDs: Set<Int> = [202970, 212910, 202990]
@@ -655,6 +827,11 @@ enum GameRecommendations {
             if steamAppID == horizonZeroDawnAppID || installFolder == "horizon zero dawn" { return horizonZeroDawn }
             if steamAppID == darkSoulsRemasteredAppID || installFolder == "dark souls remastered" { return darkSoulsRemastered }
             if steamAppID == darkSoulsIIIAppID || installFolder == "dark souls iii" { return darkSoulsIII }
+            if steamAppID == darkSoulsIIAppID || installFolder == "dark souls ii" { return darkSoulsII }
+            if steamAppID == alanWakeAppID || installFolder == "alan wake" { return alanWake }
+            if steamAppID == oriBlindForestAppID || installFolder == "ori" { return oriBlindForest }
+            if steamAppID == celesteAppID || installFolder == "celeste" { return celeste }
+            if steamAppID == laNoireAppID || installFolder == "l.a.noire" { return laNoire }
             if steamAppID == falloutNewVegasAppID || installFolder == "fallout new vegas" { return falloutNewVegas }
             if steamAppID.map(fallout3AppIDs.contains) == true || installFolder == "fallout 3"
                 || installFolder == "fallout 3 goty" { return fallout3 }
@@ -683,6 +860,16 @@ enum GameRecommendations {
             return darkSoulsRemastered
         case "darksoulsiii.exe":
             return darkSoulsIII
+        case "darksoulsii.exe":
+            return darkSoulsII
+        case "alanwake.exe":
+            return alanWake
+        case "lanoire.exe":
+            return laNoire
+        case "ori.exe":
+            return oriBlindForest
+        case "celeste.exe":
+            return celeste
         case "falloutnv.exe":
             return falloutNewVegas
         case "fallout3.exe":
