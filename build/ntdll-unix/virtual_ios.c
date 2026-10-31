@@ -34969,6 +34969,33 @@ NTSTATUS WINAPI NtResetWriteWatch( HANDLE process, PVOID base, SIZE_T size )
     return status;
 }
 
+#ifdef WINE_IOS
+/* madeira: read guest memory without taking a host fault. A plain memmove()
+ * reaches the source with a host load, and that fault is not an SEH event here
+ * (bus_handler hands it to the guest from the dispatcher stack -> "Exception
+ * frame is not in stack limits", main6.txt). The kernel copy returns an error
+ * instead (ios_ec_hook_peek) and still pages data in; the destination stays a
+ * guest store, so JIT-pool RX pages go through their RW alias. */
+static SIZE_T ios_read_fault_free( void *dst, const void *src, SIZE_T size )
+{
+    char bounce[0x4000];   /* one iOS host page (16 KB; 4 KB fits too) */
+    SIZE_T done = 0;
+    while (done < size)
+    {
+        const char *s = (const char *)src + done;
+        SIZE_T n = min( size - done, host_page_size - ((UINT_PTR)s & host_page_mask) );
+        mach_vm_size_t got = 0;
+        if (mach_vm_read_overwrite( mach_task_self(), (mach_vm_address_t)(uintptr_t)s, n,
+                                    (mach_vm_address_t)(uintptr_t)bounce, &got ) != KERN_SUCCESS
+            || got != n)
+            break;             /* an AV, not a crash: keep what was copied */
+        memcpy( (char *)dst + done, bounce, n );
+        done += n;
+    }
+    return done;
+}
+#endif
+
 
 /***********************************************************************
  *             NtReadVirtualMemory   (NTDLL.@)
@@ -34986,17 +35013,15 @@ NTSTATUS WINAPI NtReadVirtualMemory( HANDLE process, const void *addr, void *buf
     }
     else if (process == GetCurrentProcess())
     {
-        __TRY
-        {
-            memmove( buffer, addr, size );
-            status = STATUS_SUCCESS;
-        }
-        __EXCEPT
-        {
-            status = STATUS_PARTIAL_COPY;
-            size = 0;
-        }
+#ifdef WINE_IOS
+        SIZE_T requested = size;   /* readable prefix copied; bytes_read says how much */
+        size = ios_read_fault_free( buffer, addr, requested );
+        status = (size == requested) ? STATUS_SUCCESS : STATUS_PARTIAL_COPY;
+#else
+        __TRY { memmove( buffer, addr, size ); status = STATUS_SUCCESS; }
+        __EXCEPT { status = STATUS_PARTIAL_COPY; size = 0; }
         __ENDTRY
+#endif
     }
     else
     {
