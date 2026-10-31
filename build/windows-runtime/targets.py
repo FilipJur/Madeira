@@ -59,10 +59,18 @@ def install(arch, selected):
         Path(str(dest) + '.tmp').replace(dest)
 
 
+def undelayed_modules():
+    out = subprocess.run([str(ROOT / 'build/wine-pe/build-modules.sh')],
+                         capture_output=True, text=True, check=True,
+                         env=dict(os.environ, LIST_DEFAULT='1')).stdout
+    return set(out.split())
+
+
 def close_imports():
     spec = importlib.util.spec_from_file_location('runtime', ROOT / 'tools/build/runtime-components.py')
     runtime = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runtime)
+    undelayed = undelayed_modules()
     for arch in ['arm64ec', 'aarch64']:
         farm = ROOT / f'app/Madeira/{arch}-windows'
         for _ in range(16):
@@ -75,8 +83,13 @@ def close_imports():
                 raise ValueError(f'{arch}: missing a DLL owned by DXMT/FEX/custom runtime: {missing}')
             print(f'{arch}: building imported modules: {sorted(missing)}', flush=True)
             if arch == 'arm64ec':
-                subprocess.run([str(ROOT / 'build/wine-pe/build-modules.sh'),
-                                *(directory for _, _, directory in selected)], check=True)
+                plain = [directory for _, _, directory in selected if directory in undelayed]
+                delayed = [directory for _, _, directory in selected if directory not in undelayed]
+                if plain:
+                    subprocess.run([str(ROOT / 'build/wine-pe/build-modules.sh'), *plain], check=True)
+                if delayed:
+                    subprocess.run([str(ROOT / 'build/wine-pe/build-modules.sh'), *delayed],
+                                   check=True, env=dict(os.environ, UNDELAY='0'))
             else:
                 install(arch, selected)
         else:
