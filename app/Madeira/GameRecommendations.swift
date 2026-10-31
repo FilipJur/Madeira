@@ -728,6 +728,48 @@ enum GameRecommendations {
         env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
         env.MADEIRA_EC_HOOK_TRACE = 0
         """)
+
+    /// L.A. Noire (Steam; 32-bit D3D9 default, -dx11 opts into D3D11;
+    /// full controller in game, not in the launcher): dx9-path.md §3 row 1,
+    /// untested upstream and highest-risk of the owned set because every
+    /// digital copy requires the Rockstar Games Launcher / Social Club.
+    /// Prefer LANoire.exe directly (bypassing LANLauncher.exe and the RG
+    /// Launcher) with -dx11 and -windowed on its command line (dx9-path.md
+    /// §3 row 1); flags live in the launch args, not in this list. This
+    /// list is the standard list plus the §4 recipe's memory keys, which
+    /// keep DX9 texture churn under the ~6.1 GB kill line
+    /// (mem-footprint.md §5.1 rows 7-8: broad swap coverage; vram-mb is
+    /// inert on the DX9 path but harmless, mem-graphics.md §7(a).3):
+    /// DXMT_MAX_VRAM_MB = 768 caps what this D3D9 title sees
+    /// (mem-graphics.md §7(a).5). The launcher lines are copied from
+    /// RDR2's list above (dx9-path.md §4, Rockstar launcher path): the RG
+    /// Launcher is the same Launcher.exe + SocialClubHelper.exe pair, so
+    /// the keep-alive names the game exe, the DXMT rings stay small for
+    /// the pair, Social Club's Chromium is single-process
+    /// (env.MADEIRA_SC_CEF = 1), and avail-phys reports headroom so
+    /// Chromium frees caches. Untested as a list, and the launcher path
+    /// may still fail (GTA IV's installer report, dx9-path.md §4).
+    static let laNoire = GameRecommendation(
+        id: "la-noire", title: "L.A. Noire", version: 1,
+        config: """
+        # Madeira's recommended settings for L.A. Noire (not tested yet).
+        # Reset to Recommended, at the bottom of the game's settings, brings them back.
+        pool = 512
+        swap-mb = 3072
+        swap-mode = 2
+        swap-min-mb = 1
+        vram-mb = 1536
+        avail-phys = 1
+        env.DXMT_MAX_VRAM_MB = 768
+        env.MADEIRA_DOCK_KEEP_ALIVE = Launcher.exe;LANoire.exe
+        env.DXMT_SMALL_RINGS = Launcher.exe;SocialClubHelper.exe
+        env.MADEIRA_SC_PA_POOLS = 2
+        env.MADEIRA_SPAWN_BLOCK = RockstarErrorHandler;.be\\vc_redist
+        env.MADEIRA_PIN_GRAPHICS_DLLS = 1
+        env.WINEDLLOVERRIDES = video64=
+        env.MADEIRA_SC_CEF = 1
+        env.MADEIRA_EC_HOOK_TRACE = 0
+        """)
     /// Every other game, and the Desktop (owner's decisions, 2026-10-12): most games
     /// the owner tried outside these lists closed at start until the [ec-hook]
     /// reporter was off. It reads code a game's protection rewrites at run time
@@ -747,7 +789,7 @@ enum GameRecommendations {
         """)
 
     static let all = [rdr2Steam, rdr2Other, gta5EnhancedSteam, gta5EnhancedOther, ghostOfTsushima, godOfWar, horizonZeroDawn,
-                      alanWake, celeste, oriBlindForest, darkSoulsII, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]
+                      laNoire, alanWake, celeste, oriBlindForest, darkSoulsII, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]
 
     // MARK: Recognising a game
 
@@ -758,6 +800,7 @@ enum GameRecommendations {
     static let alanWakeAppID = 108710
     static let oriBlindForestAppID = 261570
     static let celesteAppID = 504230
+    static let laNoireAppID = 110800
     static let falloutNewVegasAppID = 22380, fallout3AppIDs: Set<Int> = [22300, 22370]   // Fallout 3, its GOTY Edition
     /// Black Ops II's campaign, Zombies and multiplayer.
     static let blackOps2AppIDs: Set<Int> = [202970, 212910, 202990]
@@ -788,6 +831,7 @@ enum GameRecommendations {
             if steamAppID == alanWakeAppID || installFolder == "alan wake" { return alanWake }
             if steamAppID == oriBlindForestAppID || installFolder == "ori" { return oriBlindForest }
             if steamAppID == celesteAppID || installFolder == "celeste" { return celeste }
+            if steamAppID == laNoireAppID || installFolder == "l.a.noire" { return laNoire }
             if steamAppID == falloutNewVegasAppID || installFolder == "fallout new vegas" { return falloutNewVegas }
             if steamAppID.map(fallout3AppIDs.contains) == true || installFolder == "fallout 3"
                 || installFolder == "fallout 3 goty" { return fallout3 }
@@ -820,6 +864,8 @@ enum GameRecommendations {
             return darkSoulsII
         case "alanwake.exe":
             return alanWake
+        case "lanoire.exe":
+            return laNoire
         case "ori.exe":
             return oriBlindForest
         case "celeste.exe":
