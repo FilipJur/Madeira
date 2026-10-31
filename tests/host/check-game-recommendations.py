@@ -65,9 +65,9 @@ for m in re.finditer(r'static let (\w+) = GameRecommendation\(\n\s*id: "([^"]+)"
     lines = [line[len(indent):] if line.startswith(indent) else line for line in body.split('\n')]
     presets[ident] = dict(name=name, title=title, version=int(version), lines=lines, switches=' '.join((switches or '').split()))
 assert set(presets) == {'rdr2-steam', 'rdr2-other', 'gta5e-steam', 'gta5e-other', 'ghost-of-tsushima', 'god-of-war',
-                        'horizon-zero-dawn', 'dark-souls-remastered', 'dark-souls-iii', 'alan-wake', 'celeste', 'ori-blind-forest', 'fallout-new-vegas', 'fallout-3', 'black-ops-2', 'standard'}, sorted(presets)
+                        'horizon-zero-dawn', 'dark-souls-remastered', 'dark-souls-iii', 'dark-souls-ii', 'alan-wake', 'celeste', 'ori-blind-forest', 'fallout-new-vegas', 'fallout-3', 'black-ops-2', 'standard'}, sorted(presets)
 assert ('static let all = [rdr2Steam, rdr2Other, gta5EnhancedSteam, gta5EnhancedOther, ghostOfTsushima, godOfWar, horizonZeroDawn,\n'
-        '                      alanWake, celeste, oriBlindForest, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]') in lists_src
+        '                      alanWake, celeste, oriBlindForest, darkSoulsII, darkSoulsRemastered, darkSoulsIII, falloutNewVegas, fallout3, blackOps2, standard]') in lists_src
 
 # madeira-bcd's defaults where upstream's differ: every game madeira-bcd ran had them,
 # so every game's own list ends with them. The standard list reaches every other game
@@ -76,7 +76,7 @@ FORK_DEFAULTS = ["# madeira-bcd's defaults, which this list was tested with (ups
                  'env.MADEIRA_FREE_DELAY_MS = 2000', 'env.MADEIRA_CTX_CPU_AREA = 2', 'env.MADEIRA_WAIT_CHILDREN = 1',
                  'env.MADEIRA_JIT_DUMP = 0']
 for ident, p in presets.items():
-    if ident in ('dark-souls-remastered', 'dark-souls-iii', 'alan-wake', 'celeste', 'ori-blind-forest'):
+    if ident in ('dark-souls-remastered', 'dark-souls-iii', 'dark-souls-ii', 'alan-wake', 'celeste', 'ori-blind-forest'):
         p['tested'], p['fork'] = [line for line in p['lines'][2:] if not line.startswith('#')], []
         continue
     # The Fallout lists are the standard one plus a switch: the games ran with it.
@@ -131,7 +131,15 @@ assert oribf['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swa
                            'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
                            'env.MADEIRA_PAD_EARLY_SLOT = 1', 'env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1',
                            'env.MADEIRA_EC_HOOK_TRACE = 0'] and oribf['switches'] == '' and oribf['version'] == 1, oribf
-print('PASS: sixteen lists, recorded fork defaults retained, Dark Souls and Fallout lists kept separate, no key twice, '
+# Dark Souls II (untested list): the §4 recipe plus X64_IMAGE_NOCOPY for the
+# 64-bit sibling's self-modifying images. No switches, no fork defaults.
+ds2 = presets['dark-souls-ii']
+assert ds2['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-min-mb = 1',
+                         'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
+                         'env.MADEIRA_X64_IMAGE_NOCOPY = 1',
+                         'env.MADEIRA_PAD_EARLY_SLOT = 1', 'env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1',
+                         'env.MADEIRA_EC_HOOK_TRACE = 0'] and ds2['switches'] == '' and ds2['version'] == 1, ds2
+print('PASS: seventeen lists, recorded fork defaults retained, Dark Souls and Fallout lists kept separate, no key twice, '
       'every non-env key in the settings catalog, no Social Club DLL lines, no variant DLL switches')
 
 # Red Dead Redemption 2 from Steam: the owner's list of 2026-10-09 (build 463), line for line,
@@ -308,6 +316,8 @@ assert 'installFolder == "red dead redemption 2"' in match and 'installFolder ==
 assert 'installFolder == "celeste"' in match and 'case "celeste.exe":\n            return celeste' in match
 assert 'static let oriBlindForestAppID = 261570' in lists_src
 assert 'installFolder == "ori"' in match and 'case "ori.exe":\n            return oriBlindForest' in match
+assert 'static let darkSoulsIIAppID = 236430' in lists_src
+assert 'installFolder == "dark souls ii"' in match and 'case "darksoulsii.exe":\n            return darkSoulsII' in match
 assert 'case "ghostoftsushima.exe":' in match and 'case "gow.exe":' in match and 'case "rdr2.exe", "playrdr2.exe":' in match
 assert 'case "horizonzerodawn.exe":\n            return horizonZeroDawn' in match
 assert 'if steamAppID == horizonZeroDawnAppID || installFolder == "horizon zero dawn" { return horizonZeroDawn }' in match
@@ -538,6 +548,8 @@ check(id(steam + #"\Celeste"#, 504230) == "celeste" && id(steam + #"\Celeste"#) 
 check(id(#"C:\Games\Celeste\Celeste.exe"#) == "celeste", "Celeste by its program")
 check(id(steam + #"\Ori"#, 261570) == "ori-blind-forest" && id(steam + #"\Ori"#) == "ori-blind-forest", "Ori from Steam")
 check(id(#"C:\Games\Ori\ori.exe"#) == "ori-blind-forest", "Ori by its program")
+check(id(steam + #"\Dark Souls II"#, 236430) == "dark-souls-ii" && id(steam + #"\Dark Souls II"#) == "dark-souls-ii", "Dark Souls II from Steam")
+check(id(#"C:\Games\Dark Souls II\DarkSoulsII.exe"#) == "dark-souls-ii", "Dark Souls II by its program")
 // Every other game: the standard list; a path that names nothing: none.
 check(R.recommendation(windowsPath: #"C:\Games\Foo\foo.exe"#, steamAppID: nil)?.id == "standard"
       && R.recommendation(windowsPath: steam + #"\Portal 2"#, steamAppID: 620)?.id == "standard", "every other game: the standard list")
