@@ -1,0 +1,39 @@
+{
+  "name": "[x] CRPG mouse",
+  "comment": "Isometric CRPG / point and click (Esoteric Ebb, Disco Elysium, DOS2). Design: docs/fork/research/touch-genre-profiles.md section 8. Full-screen ABSMOUSEPAD (tap = click, drag = LMB held), held TAB to highlight, zoom wheel left, RMB + folder right. Every widget is >= 92 pt (15 mm = 90.6 pt on the iPhone 15 Pro), inside the 59/59/8/21 pt safe area; the design's 54 pt keys and its x = .94 wheel were enlarged/moved for that. Gyro unused.",
+  "profile": {
+    "synthesizePhysicalStick": false
+  },
+  "widgets": [
+    { "id": "pad", "cmd": "ABSMOUSEPAD", "pos": [0.5, 0.5], "sizePt": [850, 390], "primary": true,
+      "comment": "Backdrop: covers the whole screen on purpose (pads render below buttons), so the size and safe-area checks skip it. Alpha 0 because it IS the whole screen.",
+      "props": { "mouseButtonAction": "leftButtonDown", "backgroundAlpha": 0, "borderAlpha": 0 } },
+
+    { "cmd": "ESC", "label": "ESC", "pos": [0.1232, 0.1374], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "cmd": "SPACE", "label": "Pause", "pos": [0.1232, 0.3919], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "cmd": "WHEEL", "label": "Zoom", "pos": [0.1232, 0.7328], "sizePt": [92, 160], "primary": true,
+      "comment": "Zoom. Design put it at x=.94, which is inside the right inset; moved to the left edge column.",
+      "props": { "sensitivityFactorY": 0.6 } },
+
+    { "id": "folder", "cmd": "FOLDER", "label": "Menus", "pos": [0.8744, 0.1374], "sizePt": [92, 92], "shape": "square",
+      "props": { "buttonMode": "regular", "revealMode": "exclusive" } },
+    { "cmd": "TAB", "label": "Hilite", "pos": [0.8744, 0.4071], "sizePt": [92, 92], "primary": true,
+      "comment": "Hold to highlight interactables (Disco / Esoteric Ebb). regular = down while held.",
+      "props": { "buttonMode": "regular" } },
+    { "cmd": "MRIGHT", "label": "RMB", "pos": [0.8744, 0.8142], "sizePt": [92, 92], "primary": true,
+      "props": { "buttonMode": "regular" } },
+
+    { "parent": "folder", "cmd": "I", "label": "Inv", "pos": [0.4108, 0.1374], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "parent": "folder", "cmd": "J", "label": "Journal", "pos": [0.5282, 0.1374], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "parent": "folder", "cmd": "K", "label": "Quests", "pos": [0.6455, 0.1374], "sizePt": [92, 92], "props": { "buttonMode": "regular" },
+      "comment": "Disco Elysium: use T (thought cabinet)." },
+    { "parent": "folder", "cmd": "L", "label": "Spells", "pos": [0.4108, 0.3919], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "parent": "folder", "cmd": "Q", "label": "Char", "pos": [0.5282, 0.3919], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "parent": "folder", "cmd": "C", "label": "Stats", "pos": [0.6455, 0.3919], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "parent": "folder", "cmd": "M", "label": "Map", "pos": [0.4108, 0.6463], "sizePt": [92, 92], "props": { "buttonMode": "regular" } },
+    { "parent": "folder", "cmd": "END", "label": "Rot L", "pos": [0.5282, 0.6463], "sizePt": [92, 92], "props": { "buttonMode": "regular" },
+      "comment": "DOS2 camera rotate left." },
+    { "parent": "folder", "cmd": "DEL", "label": "Rot R", "pos": [0.6455, 0.6463], "sizePt": [92, 92], "props": { "buttonMode": "regular" },
+      "comment": "DOS2 camera rotate right." }
+  ]
+}
