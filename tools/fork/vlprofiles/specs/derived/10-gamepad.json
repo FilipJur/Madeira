@@ -1,12 +1,12 @@
 {
   "name": "[x] Gamepad",
   "base": "=vGamepad1",
-  "comment": "VoidLink's =vGamepad1 kept as is except: hold-to-gyro on RT and A (gyro adds to the right stick while held), face buttons, bumpers and triggers 60 -> 76 pt, right-stick swipe pad ~1.8x faster, the inert GYRO-RSVPAD (a GYRO token on a pad does nothing) turned into a second camera pad, PUSHTOTALK (voice chat, no Madeira sink) removed. Positions moved only where the larger buttons would overlap.",
+  "comment": "VoidLink's =vGamepad1 kept as is except: hold-to-gyro on RT and A (gyro adds to the right stick while held), face buttons, bumpers and triggers 60 -> 76 pt, one right-side camera swipe pad (RSVPAD) covering both old pad areas at ~1.8x the speed, the GYRO-RSVPAD zone (touch = gyro + camera) removed so gyro runs only while RT or A is held, PUSHTOTALK (voice chat, no Madeira sink) removed. Positions moved only where the larger buttons would overlap.",
   "profile": {
     "mapGyroTo": "stick",
     "yawPitchToRightStick": true
   },
-  "remove": ["PUSHTOTALK"],
+  "remove": ["PUSHTOTALK", "GYRO-RSVPAD"],
   "edits": [
     { "match": "RT", "cmd": "GYRO-RT", "label": "RT", "pos": [0.939, 0.1272], "sizePt": [76, 76],
       "props": { "buttonMode": "regular", "yawFactor": 0.67, "pitchFactor": 0.67 } },
@@ -21,8 +21,7 @@
     { "match": "DPAD", "pos": [0.2089, 0.2265] },
     { "match": "RB-LSPAD", "pos": [0.7277, 0.5344] },
     { "match": "PICKPRFL", "pos": [0.716, 0.7939] },
-    { "match": "RSVPAD", "props": { "sensitivityFactorX": 12.0, "sensitivityFactorY": 12.0 } },
-    { "match": "GYRO-RSVPAD", "cmd": "RSVPAD", "label": "Rsvpad",
-      "props": { "sensitivityFactorX": 12.0, "sensitivityFactorY": 12.0, "mouseButtonAction": "hovering", "buttonMode": "slideToToggle" } }
+    { "match": "RSVPAD", "pos": [0.7418, 0.514], "sizePt": [436, 382],
+      "props": { "sensitivityFactorX": 12.0, "sensitivityFactorY": 12.0 } }
   ]
 }
