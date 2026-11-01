@@ -1,0 +1,26 @@
+{
+  "name": "[x] Divinity",
+  "base": "=vGamepad1",
+  "comment": "Divinity: Original Sin Enhanced Edition, controller UI (Larian's in-game Controller Layout screen): LS move (press: selector mode), RS rotate/zoom camera (press: toggle tooltips), A default action/accept, B cancel (hold: end turn), X action menu, Y toggle hot bar, LB/RB previous/next item or enemy, LT hold party selection, RT hold panel selection, D-pad right attack mode / left force splitscreen / up tactical view / down toggle sneak, Back map, Start game menu. Both triggers sit on the right thumb: their radials are held while the left wheel picks, which one thumb cannot do. The camera is a plain RSVPAD swipe zone (no gyro, turn-based game). Push-to-talk, the gyro look zone, the bumper-radial folder with its LB/RB stick pads removed.",
+  "remove": ["PUSHTOTALK", "GYRO-RSVPAD", "LB-RSPAD", "RB-LSPAD", "FOLDER@468"],
+  "edits": [
+    { "match": "RSVPAD", "label": "Camera", "pos": [0.5634, 0.4835], "sizePt": [250, 290],
+      "props": { "minStickOffset": 8700 } },
+    { "match": "RT", "label": "Panels", "pos": [0.946, 0.1323], "sizePt": [72, 72] },
+    { "match": "LT", "label": "Party", "pos": [0.8498, 0.1323], "sizePt": [72, 72] },
+    { "match": "RB", "label": "Next", "pos": [0.9531, 0.3181], "sizePt": [60, 60] },
+    { "match": "OSCY", "label": "Hotbar", "pos": [0.8826, 0.4733], "sizePt": [64, 64] },
+    { "match": "OSCX", "label": "Actions", "pos": [0.8192, 0.6667], "sizePt": [64, 64] },
+    { "match": "OSCB", "label": "Back", "pos": [0.9531, 0.631], "sizePt": [64, 64] },
+    { "match": "OSCA", "label": "OK", "pos": [0.9038, 0.8193], "sizePt": [76, 76] },
+    { "match": "LB", "label": "Prev", "pos": [0.0704, 0.4987], "sizePt": [64, 64] },
+    { "match": "OSCBACK", "label": "Map" },
+    { "match": "OSCPLAY", "label": "Menu", "pos": [0.6338, 0.9542] },
+    { "match": "DPAD", "pos": [0.2289, 0.2265] },
+    { "match": "PICKPRFL", "pos": [0.716, 0.7939] }
+  ],
+  "add": [
+    { "like": "LB", "cmd": "OSCL3", "label": "Select", "pos": [0.3, 0.5], "sizePt": [56, 56] },
+    { "like": "RB", "cmd": "OSCR3", "label": "Tips", "pos": [0.7465, 0.4987], "sizePt": [52, 52] }
+  ]
+}
