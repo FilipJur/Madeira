@@ -3455,6 +3455,25 @@ static void *ios_mach_exception_thread( void *arg )
                         case 0x79400000: /* LDRH Wt */
                             if (rt != 31) state.__x[rt] = *(uint16_t *)ea;
                             emulated = 1; break;
+                        /* unsigned-offset sign-extending loads, base x18 (`ldrsw x8,
+                         * [x18,#0x180c]` in wow64.dll's thread start killed Alan Wake
+                         * 2026-11-01: the via-x18 trampoline preempted between its
+                         * TEB reload and this load). */
+                        case 0xb9800000: /* LDRSW Xt */
+                            if (rt != 31) state.__x[rt] = (uint64_t)(int64_t)*(int32_t *)ea;
+                            emulated = 1; break;
+                        case 0x39800000: /* LDRSB Xt */
+                            if (rt != 31) state.__x[rt] = (uint64_t)(int64_t)*(int8_t *)ea;
+                            emulated = 1; break;
+                        case 0x39c00000: /* LDRSB Wt */
+                            if (rt != 31) state.__x[rt] = (uint32_t)(int32_t)*(int8_t *)ea;
+                            emulated = 1; break;
+                        case 0x79800000: /* LDRSH Xt */
+                            if (rt != 31) state.__x[rt] = (uint64_t)(int64_t)*(int16_t *)ea;
+                            emulated = 1; break;
+                        case 0x79c00000: /* LDRSH Wt */
+                            if (rt != 31) state.__x[rt] = (uint32_t)(int32_t)*(int16_t *)ea;
+                            emulated = 1; break;
                         /* unsigned-offset immediate stores, base x18 */
                         case 0xf9000000: /* STR Xt */
                             *(uint64_t *)ea = (rt == 31) ? 0 : state.__x[rt];
