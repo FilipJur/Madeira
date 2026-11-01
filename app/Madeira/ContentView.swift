@@ -2695,8 +2695,11 @@ struct ContentView: View {
         /* ml2100: XInput (default) or the HID controller; before the wineserver starts. */
         GamepadInput.shared.beginPadSession()
         /* ml1990: player 1 exists before the game enumerates XInput. */
-        /* VLTouch: the widgets feed player 1 too, and LibraryModel.begin has already resolved the switch. */
-        GamepadInput.shared.reserveSessionSlot(touchControls: TouchControlsModel.shared.offersControllerInput || VLTouchSwitch.active)
+        /* VLTouch: the widgets feed player 1 too, and LibraryModel.begin has already resolved the switch.
+         * The game's own file is read here: its env lines are exported later (applyEnvironment). */
+        let gameEarlySlot = profile.map { GameProfile(windowsPath: $0.windowsPath).values["env.MADEIRA_PAD_EARLY_SLOT"] == "1" } ?? false
+        GamepadInput.shared.reserveSessionSlot(touchControls: TouchControlsModel.shared.offersControllerInput || VLTouchSwitch.active,
+                                               gameOptIn: gameEarlySlot)
         if MadeiraConfig.present {
             let cfg = MadeiraConfig.all().sorted { $0.key < $1.key }
             logStore.log("madeira.cfg: " + (cfg.isEmpty ? "(empty)" : cfg.map { "\($0.key)=\($0.value)" }.joined(separator: " ")))

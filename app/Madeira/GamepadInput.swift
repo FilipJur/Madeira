@@ -34,7 +34,8 @@ final class GamepadInput: @unchecked Sendable {
         }
     }
 
-    /// Publish player 1 before the game looks (MADEIRA_PAD_EARLY_SLOT=1; default OFF).
+    /// Publish player 1 before the game looks (MADEIRA_PAD_EARLY_SLOT=1 in madeira.cfg, the
+    /// environment, or the game's own file via `gameOptIn`; default OFF).
     ///
     /// Some input layers enumerate XInput once at startup and only rescan on a
     /// device-arrival broadcast, which this port does not deliver. Touch slot 0
@@ -47,8 +48,8 @@ final class GamepadInput: @unchecked Sendable {
     /// so player 1 then shows as connected for the whole session even while no
     /// controller is in use. That is why it is opt-in: without the switch,
     /// slot 0 connects only when a real source appears, as before.
-    @MainActor func reserveSessionSlot(touchControls: Bool) {
-        guard Self.enabled, Self.optIn("MADEIRA_PAD_EARLY_SLOT") else { return }
+    @MainActor func reserveSessionSlot(touchControls: Bool, gameOptIn: Bool = false) {
+        guard Self.enabled, gameOptIn || Self.optIn("MADEIRA_PAD_EARLY_SLOT") else { return }
         let touch = touchControls && Self.touchEnabled
         let paired = !GCController.controllers().isEmpty
         guard touch || paired else { return }
