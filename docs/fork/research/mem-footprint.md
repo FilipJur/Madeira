@@ -5,6 +5,14 @@ Read-only investigation. Evidence: `/tmp/g2/dev/{ebbgame,ebb3,ebb4,ebb6,sig}.txt
 Apple docs, upstream `willfaust/Madeira` PRs. Everything not marked **[INFERENCE]** is a line in a log
 or a source line.
 
+> **Review corrections (2026-11-01).** The footprint formula and the `external`
+> exclusion hold (XNU `task.c:1224-1248`, `pmap.c:6509-6516`). Not as stated: the
+> residual tracks Metal `currentAllocatedSize` only loosely (gaps up to 457 MB, ebb4
+> c138; 198 MB, ebb6 c4), not "±150 MB in every run"; ebb4's JIT pool is 864 MB, not
+> 880; death timestamps are ebb3 21:33:19.9 and ebb4 22:48:35.6; the 64 MB block burst
+> is ebb6 23:04:01-02, the 128 MB one 23:05:00.8. §4's 4 B/texel BC census bug was fixed
+> in dxmt `40bbd04`, after these logs; their census figures are pre-fix.
+
 ## 0. Ranked findings
 
 1. **jetsam charges the XNU ledger `phys_footprint`, whose only terms are** `internal + internal_compressed

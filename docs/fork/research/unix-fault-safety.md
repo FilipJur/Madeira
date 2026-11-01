@@ -2,6 +2,14 @@
 
 Why **any** fault taken inside Wine's Unix code by a guest-memory access kills the process on this port, and one fix that restores upstream's contract for every site at once. Point fixes for single syscalls (`docs/fork/research/dx9-batman-fix.md`) are right but leave a landmine per site. Evidence: `/tmp/g2/dev/main6.txt`, `main5.txt` (Batman, `env.MADEIRA_NO_GL=1`), `bm.txt`.
 
+> **Review corrections (2026-11-01).** `STATUS_PARTIAL_COPY` is `0x8000000D`
+> (`wine/include/ntstatus.h:232`); `0x8000001A` below is `STATUS_NO_MORE_ENTRIES`.
+> The committed probe is `tools/fork/tests/rpm-probe.c` (built by
+> `tools/fork/tests/build-rpm-probe.sh`), not `tests/x86/`. Its guard-page case accepts a
+> clean read or a clean failure, since Windows' result there is not established. The
+> §5.2 sketch writes the guarded page before checking it is armed, which disarms it.
+> Line anchors in §2 predate the landed fix (`fa7fb5b`, `2048b62`, `b944af8`).
+
 ---
 
 ## 0. Verdict

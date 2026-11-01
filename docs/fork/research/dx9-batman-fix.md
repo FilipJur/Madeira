@@ -343,7 +343,7 @@ Evidence: `[bus-regs]` followed by the `__EXCEPT` status, instead of
 | 3 | `wine/dlls/opengl32/unix_wgl.c:2829`, `unix_private.h:88` | hardening: `args` is host; `get_teb64` takes `ULONG_PTR` + `ios_wow_in_window()` | same as 2, and survives a non-4 GB-aligned base |
 | 4 | `build/ntdll-unix/signal_arm64_ios.c:14391` | `bus_handler` honours `thread_data->jmp_buf` before BUS->AV | residual host faults land in `__EXCEPT` |
 | 5 | `build/ntdll-unix/virtual_ios.c:27356` | `virtual_check_buffer_for_read` probes via `mach_vm_read_overwrite` | bad-source `NtWriteVirtualMemory` → `STATUS_PARTIAL_COPY`, no death |
-| 6 | `docs/BUILDING.md:93,100` | build-time `git -C wine apply --reverse --check ../patches/wine-opengl-winios.patch` guard | an unpatched `wine/` tree fails the build, not the device |
+| 6 | `tools/fork/apply-wine-patches.sh` (landed `b61d50f`/`225517a`) | build scripts apply the patch idempotently before compiling Wine sources | an unpatched `wine/` is patched; one the patch no longer fits fails the build, not the device |
 
 Order: 2 (removes the load-time death), then 1 (the launcher), then 3-5; every
 claim is anchored to a file:line or a log line, anything else is inference.

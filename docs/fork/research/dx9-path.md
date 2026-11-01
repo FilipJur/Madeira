@@ -191,7 +191,9 @@ Cause: `wine/dlls/opengl32/unix_private.h:88-93` still does
 `patches/wine-opengl-winios.patch:317-327` defines `get_teb64_from()` with
 `ios_wow_host_ptr( teb32 )` and `build/ntdll-unix/build.sh:170-177` compiles
 `unix_wgl.c`/`unix_thunks.c` from that unpatched tree. `docs/BUILDING.md:93,96,100` tells the builder
-to apply the patch; **no script or CI step does**, so a clean build is guaranteed to have this bug.
+to apply the patch; before the fork's `225517a` no script or CI step did. Since then
+`tools/fork/apply-wine-patches.sh` applies it from `build/ntdll-unix/build.sh`,
+`build/wine-i386/build.sh` and `build/wine-pe/build-modules.sh` (G4 onward).
 This is also what makes `d3d9 = wined3d` unusable for 32-bit today, and why TF2 (#424) and Vice City
 (D3D8) cannot work.
 Workaround: `env.MADEIRA_NO_GL = 1` (documented switch, `virtual_ios.c:12327-12342`) — but it also

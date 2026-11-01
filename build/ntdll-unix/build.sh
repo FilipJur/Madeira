@@ -10,8 +10,8 @@ OBJ_DIR="$BUILD_DIR/obj"
 APP_LIB="$REPO_ROOT/app/Madeira/libntdll_unix.a"
 
 # Fork: the Wine tree must carry patches/wine-opengl-winios.patch (32-bit
-# opengl32 wow64 thunks) before anything below compiles Wine sources; an
-# unpatched tree fails here instead of producing a broken opengl32 on device.
+# opengl32 wow64 thunks) before anything below compiles Wine sources; the
+# script applies it, or fails here if it no longer applies.
 "$REPO_ROOT/tools/fork/apply-wine-patches.sh"
 
 mkdir -p "$OBJ_DIR"

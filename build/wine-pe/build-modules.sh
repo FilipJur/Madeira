@@ -103,9 +103,8 @@ GAME_MODULES="msvcr70 msvcr71 msvcr80 msvcr90 msvcr100 msvcrt20 msvcrt40 msvcirt
 [ "${LIST_DEFAULT:-0}" = 0 ] || { printf '%s\n' "$@"; exit 0; }
 [ -x "$STRIP" ] || { echo "llvm-mingw not found at $TC (docs/BUILDING.md)" >&2; exit 1; }
 
-# Fork: build from the patched tree; an unpatched wine/ fails here instead of
-# producing modules whose 32-bit opengl32 callers die at load (see
-# tools/fork/apply-wine-patches.sh).
+# Fork: build from the patched tree; the script applies the patch, or fails
+# here if it no longer applies (see tools/fork/apply-wine-patches.sh).
 "$R/tools/fork/apply-wine-patches.sh"
 
 targets=()

@@ -2,7 +2,8 @@
 # Idempotently apply the fork's Wine source patches to the wine/ working tree.
 # Called at the start of build/ntdll-unix/build.sh, build/wine-i386/build.sh
 # and build/wine-pe/build-modules.sh (before anything compiles Wine sources),
-# so an unpatched tree fails the build instead of producing a broken 32-bit
+# so an unpatched tree is patched first, and a tree the patch neither applies
+# to nor is already in fails the build, instead of producing a broken 32-bit
 # opengl32 on device (docs/fork/research/dx9-batman-fix.md section 2: the
 # wow64 thunks must convert embedded guest pointers with ios_wow_host_ptr()).
 set -eu

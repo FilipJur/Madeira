@@ -5,6 +5,11 @@ do, and which levers could save MB. Evidence is `file:line` in this tree, log li
 from `/tmp/g2/dev`, and Apple/upstream docs. Anything not directly observed is
 marked `[INFERENCE]`.
 
+> **Review correction (2026-11-01).** `ram-reserve-mb` is not reporting-only: it
+> feeds `madeira_avail_memory`, which drives the D3D11 mip clamp
+> (`d3d11_texture_device.cpp:509`), the P4 relief pass (`dxmt_staging.cpp`) and
+> mirror eviction. The D3D9 mirror cache budget is 8 MB since dxmt `41fe66b`.
+
 ## 0. Answer in one paragraph
 
 Every knob the fork exposes (`vram-mb`, `vram-trim-mb`, `ram-reserve-mb`,
