@@ -99,6 +99,15 @@ Source: `docs/fork/research/dx9-path.md` §4 recipe + §5 blockers, `mem-graphic
 
 `dxmt/` is a submodule but T3-T5 touch D3D9-only/DXMT-only files; the lead reviews diffs against upstream DXMT (`willfaust/dxmt` `05876bb`) for conflicts. T1/T2 merge first (pure app, app-check), then T3-T5 one at a time with `dxmt` diffs.
 
+### P4 status (lead, 2026-11-01)
+- [x] T1 GfxUI merged `81c4bfd` (d3d9 picker + shim message; dxmt gitlink c035b7e).
+- [x] T2 MemRecipeB merged (6 per-game recipes + check script; app triple-check green).
+- [x] T4 CensusB merged as dxmt `40bbd04` (BC cost by device support; BC1 1024² = 524288 B on A17).
+- [x] T3Full rebased onto T4 (`3d404cc`; 339 insertions over 5 files; all TUs compile).
+- [x] T5 transient reclaim recovered from worker clone and applied (`41fe66b`; 635 insertions over 11 files; 6/6 TUs compile). T3's initial narrow scope and T5's initial narrow file set were both correctly refused by the workers.
+- [x] Tree hygiene: the T1 patch guard fired correctly on a stale working tree; `wine/` restored to applied-opengl-patch state (working tree only, submodule pin `df1c5ea` untouched); farm check 0 violations; ucrtbase delay-imports correct in the IPA.
+- [x] G5 IPA: full DXMT rebuild (`build-dxmt-ios.sh`) + windows runtime + package, 209,727,215 B, sha256 `477a934489cf7579…`, pushed as `Madeira-fork-G5.ipa`.
+
 ### P5 Game tweaks (ongoing from G1)
 - Per-game config (`GameConfigs/<hash>.cfg`, no rebuild): scout reads each log, proposes keys from `ConfigCatalog.generated.swift`. First: Disco Elysium memory (`env.DXMT_MAX_VRAM_MB`, swap tiers), Esoteric Ebb retest.
 - Working configs → `GameRecommendations.swift` entries (worker), candidate upstream PRs (`git commit -s`).
