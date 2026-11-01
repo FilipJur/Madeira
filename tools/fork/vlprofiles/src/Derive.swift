@@ -9,8 +9,10 @@ import Foundation
 //     "profile": { <OSCProfile props> },
 //     "remove": ["PUSHTOTALK"],
 //     "edits": [ { "match": "OSCA", "cmd": "GYRO-OSCA", "label": "A", "pos": [x, y], "sizePt": [w, h],
-//                  "props": { <OnScreenButtonState props> } } ] }
-// "match" names exactly one widget of the base by its command string.
+//                  "props": { <OnScreenButtonState props> } } ],
+//     "add":   [ { "like": "OSCY", "cmd": "OSCY-OSCB", "label": "Y+B", "pos": [x, y], "sizePt": [w, h] } ] }
+// "match" names exactly one widget of the base by its command string. An "add" copies the widget
+// named by "like" (its look and tuning) under a new sequence number, then applies the same fields.
 
 struct DerivedEdit {
     var match: String
@@ -29,6 +31,7 @@ struct DerivedSpec {
     var profileProps: [String: Any]
     var remove: [String]
     var edits: [DerivedEdit]
+    var adds: [DerivedEdit]
 }
 
 private func pairOf(_ v: Any?, _ ctx: String) throws -> (Double, Double) {
@@ -41,26 +44,28 @@ func loadDerived(dir: String) throws -> [DerivedSpec] {
     return try files.map { f in
         let root = try JSONSerialization.jsonObject(with: Data(contentsOf: URL(fileURLWithPath: dir + "/" + f)))
         guard let d = root as? [String: Any] else { throw Fail("\(f): expected an object") }
-        for k in d.keys where !["name", "comment", "base", "profile", "remove", "edits"].contains(k) {
+        for k in d.keys where !["name", "comment", "base", "profile", "remove", "edits", "add"].contains(k) {
             throw Fail("\(f): unknown key '\(k)'")
         }
         guard let name = d["name"] as? String, name.hasPrefix(profilePrefix) else { throw Fail("\(f): 'name' must start with '\(profilePrefix)'") }
         guard let base = d["base"] as? String else { throw Fail("\(f): missing 'base'") }
-        var edits: [DerivedEdit] = []
-        for (i, raw) in ((d["edits"] as? [Any]) ?? []).enumerated() {
-            let ctx = "\(f) edit #\(i + 1)"
-            guard let e = raw as? [String: Any], let match = e["match"] as? String else { throw Fail("\(ctx): needs 'match'") }
-            for k in e.keys where !["match", "cmd", "label", "pos", "sizePt", "props", "comment"].contains(k) {
-                throw Fail("\(ctx): unknown key '\(k)'")
+        func parseEdits(_ key: String, matchKey: String) throws -> [DerivedEdit] {
+            try ((d[key] as? [Any]) ?? []).enumerated().map { i, raw in
+                let ctx = "\(f) \(key) #\(i + 1)"
+                guard let e = raw as? [String: Any], let match = e[matchKey] as? String else { throw Fail("\(ctx): needs '\(matchKey)'") }
+                for k in e.keys where ![matchKey, "cmd", "label", "pos", "sizePt", "props", "comment"].contains(k) {
+                    throw Fail("\(ctx): unknown key '\(k)'")
+                }
+                return DerivedEdit(match: match, cmd: e["cmd"] as? String, label: e["label"] as? String,
+                                   pos: e["pos"] == nil ? nil : try pairOf(e["pos"], "\(ctx) pos"),
+                                   sizePt: e["sizePt"] == nil ? nil : try pairOf(e["sizePt"], "\(ctx) sizePt"),
+                                   props: (e["props"] as? [String: Any]) ?? [:])
             }
-            edits.append(DerivedEdit(match: match, cmd: e["cmd"] as? String, label: e["label"] as? String,
-                                     pos: e["pos"] == nil ? nil : try pairOf(e["pos"], "\(ctx) pos"),
-                                     sizePt: e["sizePt"] == nil ? nil : try pairOf(e["sizePt"], "\(ctx) sizePt"),
-                                     props: (e["props"] as? [String: Any]) ?? [:]))
         }
         return DerivedSpec(file: f, name: name, comment: d["comment"] as? String, base: base,
                            profileProps: (d["profile"] as? [String: Any]) ?? [:],
-                           remove: (d["remove"] as? [String]) ?? [], edits: edits)
+                           remove: (d["remove"] as? [String]) ?? [],
+                           edits: try parseEdits("edits", matchKey: "match"), adds: try parseEdits("add", matchKey: "like"))
     }
 }
 
@@ -92,9 +97,7 @@ func buildDerived(_ d: DerivedSpec, templates: [DecodedProfile], tables: Command
         states.remove(at: i)
     }
     var edited = Set<Int16>()
-    for (n, e) in d.edits.enumerated() {
-        let ctx = "\(ctxP) edit #\(n + 1) '\(e.match)'"
-        let s = states[try index(of: e.match, ctx)]
+    func apply(_ e: DerivedEdit, to s: OnScreenButtonState, _ ctx: String) throws {
         if let cmd = e.cmd { _ = try tables.validate(cmd: cmd); s.name = cmd }
         if let l = e.label { s.alias = l }
         if let p = e.pos {
@@ -108,6 +111,20 @@ func buildDerived(_ d: DerivedSpec, templates: [DecodedProfile], tables: Command
         }
         try applyProps(s, e.props, managed: managedButtonProps, ctx: ctx)
         edited.insert(s.sequence)
+    }
+    for (n, e) in d.edits.enumerated() {
+        let ctx = "\(ctxP) edit #\(n + 1) '\(e.match)'"
+        try apply(e, to: states[try index(of: e.match, ctx)], ctx)
+    }
+    for (n, e) in d.adds.enumerated() {
+        let ctx = "\(ctxP) add #\(n + 1) like '\(e.match)'"
+        guard e.cmd != nil, e.pos != nil else { throw Fail("\(ctx): an added widget needs 'cmd' and 'pos'") }
+        let s = try copyObject(states[try index(of: e.match, ctx)], classes: buttonStateCodingClasses)
+        s.sequence = (states.map { $0.sequence }.max() ?? 0) + 1
+        s.parentSequence = -1
+        s.sequenceSet = []
+        states.append(s)
+        try apply(e, to: s, ctx)
     }
 
     // Visibility groups: a widget listed in a folder's sequenceSet (or whose parentSequence names a

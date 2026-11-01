@@ -1,27 +1,32 @@
 {
   "name": "[x] Gamepad",
   "base": "=vGamepad1",
-  "comment": "VoidLink's =vGamepad1 kept as is except: hold-to-gyro on RT and A (gyro adds to the right stick while held), face buttons, bumpers and triggers 60 -> 76 pt, one right-side camera swipe pad (RSVPAD) covering both old pad areas at ~1.8x the speed, the GYRO-RSVPAD zone (touch = gyro + camera) removed so gyro runs only while RT or A is held, PUSHTOTALK (voice chat, no Madeira sink) removed. Positions moved only where the larger buttons would overlap.",
+  "comment": "VoidLink's =vGamepad1 kept as is except: hold-to-gyro on LT (aim) and A (run), face buttons, bumpers and triggers 60 -> 76 pt, one right-side camera swipe pad covering both old pad areas, faster (sensitivity 18) and with radial dead-zone compensation (minStickOffset 8700 = XInput's right-stick dead zone, so slow swipes still turn the camera), double tap on that pad = RT+Y (Arkham ground takedown; replaces the pad's R3), gyro dead-zone compensation 7000, two combo buttons (Y+B combo takedown, X+A combo throw), GYRO-RSVPAD and PUSHTOTALK removed. Positions moved only where the larger buttons would overlap.",
   "profile": {
     "mapGyroTo": "stick",
-    "yawPitchToRightStick": true
+    "yawPitchToRightStick": true,
+    "gyroToStickMinOffset": 7000
   },
   "remove": ["PUSHTOTALK", "GYRO-RSVPAD"],
   "edits": [
-    { "match": "RT", "cmd": "GYRO-RT", "label": "RT", "pos": [0.939, 0.1272], "sizePt": [76, 76],
+    { "match": "LT", "cmd": "GYRO-LT", "label": "LT", "pos": [0.0704, 0.3003], "sizePt": [76, 76],
       "props": { "buttonMode": "regular", "yawFactor": 0.67, "pitchFactor": 0.67 } },
     { "match": "OSCA", "cmd": "GYRO-OSCA", "label": "A", "pos": [0.8779, 0.8092], "sizePt": [76, 76],
       "props": { "buttonMode": "regular", "yawFactor": 0.67, "pitchFactor": 0.67 } },
+    { "match": "RT", "pos": [0.939, 0.1272], "sizePt": [76, 76] },
     { "match": "OSCY", "pos": [0.8779, 0.5242], "sizePt": [76, 76] },
     { "match": "OSCX", "pos": [0.8122, 0.6667], "sizePt": [76, 76] },
     { "match": "OSCB", "pos": [0.9437, 0.6667], "sizePt": [76, 76] },
     { "match": "RB", "pos": [0.939, 0.3257], "sizePt": [76, 76] },
-    { "match": "LT", "pos": [0.0704, 0.3003], "sizePt": [76, 76] },
     { "match": "LB", "pos": [0.0704, 0.5089], "sizePt": [76, 76] },
     { "match": "DPAD", "pos": [0.2089, 0.2265] },
-    { "match": "RB-LSPAD", "pos": [0.7277, 0.5344] },
+    { "match": "RB-LSPAD", "pos": [0.6925, 0.5649] },
     { "match": "PICKPRFL", "pos": [0.716, 0.7939] },
-    { "match": "RSVPAD", "pos": [0.7418, 0.514], "sizePt": [436, 382],
-      "props": { "sensitivityFactorX": 12.0, "sensitivityFactorY": 12.0 } }
+    { "match": "RSVPAD", "cmd": "RSVPAD-RT-OSCY", "label": "Rsvpad", "pos": [0.7418, 0.514], "sizePt": [436, 382],
+      "props": { "sensitivityFactorX": 18.0, "sensitivityFactorY": 18.0, "minStickOffset": 8700 } }
+  ],
+  "add": [
+    { "like": "OSCY", "cmd": "OSCY-OSCB", "label": "Y+B", "pos": [0.784, 0.4478], "sizePt": [64, 64] },
+    { "like": "OSCX", "cmd": "OSCX-OSCA", "label": "X+A", "pos": [0.784, 0.2545], "sizePt": [64, 64] }
   ]
 }
