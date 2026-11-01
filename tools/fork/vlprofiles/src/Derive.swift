@@ -11,7 +11,8 @@ import Foundation
 //     "edits": [ { "match": "OSCA", "cmd": "GYRO-OSCA", "label": "A", "pos": [x, y], "sizePt": [w, h],
 //                  "props": { <OnScreenButtonState props> } } ],
 //     "add":   [ { "like": "OSCY", "cmd": "OSCY-OSCB", "label": "Y+B", "pos": [x, y], "sizePt": [w, h] } ] }
-// "match" names exactly one widget of the base by its command string. An "add" copies the widget
+// "match" names exactly one widget of the base by its command string ("FOLDER@468" adds the
+// sequence number when the base has several widgets with that string). An "add" copies the widget
 // named by "like" (its look and tuning) under a new sequence number, then applies the same fields.
 
 struct DerivedEdit {
@@ -86,7 +87,10 @@ func buildDerived(_ d: DerivedSpec, templates: [DecodedProfile], tables: Command
 
     var states = try base.states.map { try copyObject($0, classes: buttonStateCodingClasses) }
     func index(of name: String, _ ctx: String) throws -> Int {
-        let hits = states.indices.filter { states[$0].name == name }
+        let parts = name.split(separator: "@", maxSplits: 1).map(String.init)
+        let seq = parts.count == 2 ? Int16(parts[1]) : nil
+        if parts.count == 2, seq == nil { throw Fail("\(ctx): '\(name)': sequence after '@' is not a number") }
+        let hits = states.indices.filter { states[$0].name == parts[0] && (seq == nil || states[$0].sequence == seq!) }
         guard hits.count == 1 else { throw Fail("\(ctx): '\(name)' matches \(hits.count) widgets of \(d.base), need exactly 1") }
         return hits[0]
     }
@@ -138,10 +142,13 @@ func buildDerived(_ d: DerivedSpec, templates: [DecodedProfile], tables: Command
     let seqIndex = Dictionary(uniqueKeysWithValues: states.enumerated().map { ($1.sequence, $0) })
     var geo: [WidgetGeometry] = []
     for (i, s) in states.enumerated() {
-        let tok = (try? tables.validate(cmd: s.name))?.first ?? s.name
+        // Touchpads and motion-control buttons (GYRO-*) are layered below every plain button
+        // (Host/VLTouchLayer.swift:314-317), so they may sit under buttons like pads do.
+        let toks = (try? tables.validate(cmd: s.name)) ?? [s.name]
+        let underlay = tables.touchPads.contains(toks[0]) || toks.contains { tables.motion.contains($0) }
         geo.append(WidgetGeometry(cx: Double(s.position.x) * refWidth, cy: Double(s.position.y) * refHeight,
                                   w: ptFromFactor(s.widthFactor), h: ptFromFactor(s.heightFactor),
-                                  round: s.widgetShape == "round", isPad: tables.touchPads.contains(tok), backdrop: false,
+                                  round: s.widgetShape == "round", isPad: underlay, backdrop: false,
                                   parentIndex: folderOf[s.sequence].flatMap { seqIndex[$0] }, index: i, cmd: s.name,
                                   primary: edited.contains(s.sequence), waiver: nil))
     }

@@ -1,0 +1,25 @@
+{
+  "name": "[x] Portal",
+  "base": "=vGamepad1",
+  "comment": "Portal 2 on the Xbox scheme (StrategyWiki Portal 2/Controls): LS move, RS look, A jump, B crouch, X use, RT blue portal, LT orange portal, RB zoom, LB ping (co-op), D-pad co-op gestures, Start pause. Right side is one large GYRO-RSVPAD: touching it swipes the camera and turns gyro on (aim by tilting while the thumb rests), sensitivity 18 with minStickOffset 8700 (XInput right-stick dead zone) and gyro dead-zone compensation 7000. Fire buttons sit one per thumb (orange left, blue right) so aiming and firing never need the same finger. No combos, no gyro on buttons; Y, push-to-talk, the plain RSVPAD and the bumper-radial folder with its LB/RB stick pads removed.",
+  "profile": {
+    "mapGyroTo": "stick",
+    "yawPitchToRightStick": true,
+    "gyroToStickMinOffset": 7000
+  },
+  "remove": ["PUSHTOTALK", "OSCY", "RSVPAD", "LB-RSPAD", "RB-LSPAD", "FOLDER@468"],
+  "edits": [
+    { "match": "GYRO-RSVPAD", "label": "Look", "pos": [0.7418, 0.514], "sizePt": [436, 382],
+      "props": { "sensitivityFactorX": 18.0, "sensitivityFactorY": 18.0, "minStickOffset": 8700 } },
+    { "match": "RT", "label": "Blue", "pos": [0.9343, 0.1578], "sizePt": [84, 84] },
+    { "match": "RB", "label": "Zoom", "pos": [0.9343, 0.3817], "sizePt": [64, 64] },
+    { "match": "OSCB", "label": "Crouch", "pos": [0.9272, 0.5903], "sizePt": [72, 72] },
+    { "match": "OSCA", "label": "Jump", "pos": [0.9096, 0.8092], "sizePt": [84, 84] },
+    { "match": "OSCX", "label": "Use", "pos": [0.8052, 0.7634], "sizePt": [76, 76] },
+    { "match": "LT", "label": "Orange", "pos": [0.0775, 0.2799], "sizePt": [84, 84] },
+    { "match": "LB", "label": "Ping", "pos": [0.0704, 0.4987], "sizePt": [64, 64] },
+    { "match": "DPAD", "pos": [0.2289, 0.2265] },
+    { "match": "OSCPLAY", "pos": [0.6338, 0.9542] },
+    { "match": "PICKPRFL", "pos": [0.716, 0.7939] }
+  ]
+}
