@@ -676,11 +676,10 @@ enum GameRecommendations {
     /// churn under the ~6.1 GB kill line (mem-footprint.md §5.1 rows 7-8:
     /// broad swap coverage is already in the RDR2/HZD lists; vram-mb is
     /// inert on this path for Unity titles that read the budget once but
-    /// harmless, mem-graphics.md §7(a).3): DXMT_MAX_VRAM_MB = 768 caps what
-    /// the D3D9-facing GetAvailableTextureMem path would see
-    /// (mem-graphics.md §7(a).5). The pad keys publish player 1 from the
-    /// first frame with the Xbox layout for a game that polls the pad at
-    /// start (dx9-path.md §4; GamepadInput.swift:37,51). Untested as a list.
+    /// harmless, mem-graphics.md §7(a).3). DXMT_MAX_VRAM_MB is left out: its
+    /// only reader is the D3D9 frontend. The pad keys publish player 1 from
+    /// the first frame with the Xbox layout (dx9-path.md §4;
+    /// GamepadInput.swift:37,51). Untested as a list.
     static let oriBlindForest = GameRecommendation(
         id: "ori-blind-forest", title: "Ori and the Blind Forest", version: 1,
         config: """
@@ -691,7 +690,6 @@ enum GameRecommendations {
         swap-mode = 2
         swap-min-mb = 1
         vram-mb = 1536
-        env.DXMT_MAX_VRAM_MB = 768
         env.MADEIRA_PAD_EARLY_SLOT = 1
         env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
         env.MADEIRA_EC_HOOK_TRACE = 0
@@ -706,12 +704,11 @@ enum GameRecommendations {
     /// rows 7-8; vram-mb is inert on the DX9 path but harmless,
     /// mem-graphics.md §7(a).3): DXMT_MAX_VRAM_MB = 768 caps what this D3D9
     /// title sees so its texture pool stops growing sooner
-    /// (mem-graphics.md §7(a).5), and env.MADEIRA_X64_IMAGE_NOCOPY = 1
-    /// runs pure-x64 images in place instead of copying them into the JIT
-    /// pool (dx9-path.md §4, last bullet; Dark Souls III's list carries it
-    /// for the same reason). The pad keys publish player 1 from the first
-    /// frame with the Xbox layout (dx9-path.md §4; GamepadInput.swift:37,51).
-    /// Untested as a list.
+    /// (mem-graphics.md §7(a).5). MADEIRA_X64_IMAGE_NOCOPY is left out: the
+    /// research makes it conditional on a 64-bit exe, and this one is
+    /// 32-bit. The pad keys publish player 1 from the first frame with the
+    /// Xbox layout (dx9-path.md §4; GamepadInput.swift:37,51). Untested as
+    /// a list.
     static let darkSoulsII = GameRecommendation(
         id: "dark-souls-ii", title: "Dark Souls II", version: 1,
         config: """
@@ -723,7 +720,6 @@ enum GameRecommendations {
         swap-min-mb = 1
         vram-mb = 1536
         env.DXMT_MAX_VRAM_MB = 768
-        env.MADEIRA_X64_IMAGE_NOCOPY = 1
         env.MADEIRA_PAD_EARLY_SLOT = 1
         env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1
         env.MADEIRA_EC_HOOK_TRACE = 0
@@ -744,11 +740,10 @@ enum GameRecommendations {
     /// (mem-graphics.md §7(a).5). The launcher lines are copied from
     /// RDR2's list above (dx9-path.md §4, Rockstar launcher path): the RG
     /// Launcher is the same Launcher.exe + SocialClubHelper.exe pair, so
-    /// the keep-alive names the game exe, the DXMT rings stay small for
-    /// the pair, Social Club's Chromium is single-process
-    /// (env.MADEIRA_SC_CEF = 1), and avail-phys reports headroom so
-    /// Chromium frees caches. Untested as a list, and the launcher path
-    /// may still fail (GTA IV's installer report, dx9-path.md §4).
+    /// the DXMT rings stay small for the pair and avail-phys reports
+    /// headroom so Chromium frees caches. Untested as a list, and the
+    /// launcher path may still fail (GTA IV's installer report,
+    /// dx9-path.md §4).
     static let laNoire = GameRecommendation(
         id: "la-noire", title: "L.A. Noire", version: 1,
         config: """
@@ -761,13 +756,11 @@ enum GameRecommendations {
         vram-mb = 1536
         avail-phys = 1
         env.DXMT_MAX_VRAM_MB = 768
-        env.MADEIRA_DOCK_KEEP_ALIVE = Launcher.exe;LANoire.exe
         env.DXMT_SMALL_RINGS = Launcher.exe;SocialClubHelper.exe
         env.MADEIRA_SC_PA_POOLS = 2
         env.MADEIRA_SPAWN_BLOCK = RockstarErrorHandler;.be\\vc_redist
         env.MADEIRA_PIN_GRAPHICS_DLLS = 1
         env.WINEDLLOVERRIDES = video64=
-        env.MADEIRA_SC_CEF = 1
         env.MADEIRA_EC_HOOK_TRACE = 0
         """)
     /// Every other game, and the Desktop (owner's decisions, 2026-10-12): most games

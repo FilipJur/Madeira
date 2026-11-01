@@ -124,34 +124,32 @@ assert cel['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-
                          'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
                          'env.MADEIRA_PAD_EARLY_SLOT = 1', 'env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1',
                          'env.MADEIRA_EC_HOOK_TRACE = 0'] and cel['switches'] == '' and cel['version'] == 1, cel
-# Ori (untested list): the same §4 recipe list as the other pad-at-start DX9 titles.
-# No switches, no fork defaults.
+# Ori (untested list): the §4 recipe without DXMT_MAX_VRAM_MB, whose only
+# reader is the D3D9 frontend (Ori is D3D11). No switches, no fork defaults.
 oribf = presets['ori-blind-forest']
 assert oribf['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-min-mb = 1',
-                           'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
+                           'vram-mb = 1536',
                            'env.MADEIRA_PAD_EARLY_SLOT = 1', 'env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1',
                            'env.MADEIRA_EC_HOOK_TRACE = 0'] and oribf['switches'] == '' and oribf['version'] == 1, oribf
-# Dark Souls II (untested list): the §4 recipe plus X64_IMAGE_NOCOPY for the
-# 64-bit sibling's self-modifying images. No switches, no fork defaults.
+# Dark Souls II (untested list): the §4 recipe. No X64_IMAGE_NOCOPY: the exe
+# is 32-bit. No switches, no fork defaults.
 ds2 = presets['dark-souls-ii']
 assert ds2['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-min-mb = 1',
                          'vram-mb = 1536', 'env.DXMT_MAX_VRAM_MB = 768',
-                         'env.MADEIRA_X64_IMAGE_NOCOPY = 1',
                          'env.MADEIRA_PAD_EARLY_SLOT = 1', 'env.MADEIRA_CONTROLS_XBOX_DEFAULT = 1',
                          'env.MADEIRA_EC_HOOK_TRACE = 0'] and ds2['switches'] == '' and ds2['version'] == 1, ds2
 # L.A. Noire (untested list): the §4 recipe plus the Rockstar launcher set
-# copied from RDR2 (keep-alive names the game exe). No switches, no fork defaults.
+# copied from RDR2, without the keep-alive line nothing reads. No switches,
+# no fork defaults.
 lanoire = presets['la-noire']
 assert lanoire['tested'] == ['pool = 512', 'swap-mb = 3072', 'swap-mode = 2', 'swap-min-mb = 1',
                              'vram-mb = 1536', 'avail-phys = 1',
                              'env.DXMT_MAX_VRAM_MB = 768',
-                             'env.MADEIRA_DOCK_KEEP_ALIVE = Launcher.exe;LANoire.exe',
                              'env.DXMT_SMALL_RINGS = Launcher.exe;SocialClubHelper.exe',
                              'env.MADEIRA_SC_PA_POOLS = 2',
                              'env.MADEIRA_SPAWN_BLOCK = RockstarErrorHandler;.be\\vc_redist',
                              'env.MADEIRA_PIN_GRAPHICS_DLLS = 1',
                              'env.WINEDLLOVERRIDES = video64=',
-                             'env.MADEIRA_SC_CEF = 1',
                              'env.MADEIRA_EC_HOOK_TRACE = 0'] and lanoire['switches'] == '' \
     and lanoire['version'] == 1, lanoire
 print('PASS: eighteen lists, recorded fork defaults retained, Dark Souls and Fallout lists kept separate, no key twice, '

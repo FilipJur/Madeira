@@ -9893,6 +9893,7 @@ static int ios_mach_unix_try_resume( arm_thread_state64_t *state, uintptr_t teb,
     /* proves BOTH that this TEB is this thread's (issue #397's slot-0 fallback is not
      * evidence) AND that the fault is in unix code: the Mach-side is_inside_syscall,
      * unix_private.h:469 (sp in [kernel_stack, current syscall_frame]) */
+    if (!kstack || sp < kstack || sp > frame) return 0;
     /* risk 6 (as in ios_unix_try_resume): refuse while the thread holds a FEX
      * shared lock (TEB+0x16f8); longjmping out of FEX would leak the read
      * hold. Read from the exception-server thread through the kernel copy;
