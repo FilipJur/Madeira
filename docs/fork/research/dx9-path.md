@@ -222,7 +222,10 @@ game may never reserve there. `[INFERENCE]`, untested.
 Batman AC and Crysis 2 hang with `presents=0`, all guest threads parked on events nobody sets;
 `d3d9.dll` loads but `CreateDevice` is never called. Confirmed on iDeck build 56 (Madeira-based)
 and by BCD's x87 fixture on builds 574-578. Workarounds: none proven; `FEX_X87REDUCEDPRECISION=0`
-captures a *different* BCD crash, not the deadlock.
+captures a *different* BCD crash, not the deadlock. Re-check (2026-11-01): the Dock's
+`running=1` is the whole Wine session, so "0 `CreateDevice`, `running=1`" also fits a game that
+died early; Batman AA shows exactly that (`prev7.txt:12794` exit `0x1f`, then `running=1` to 158 s).
+See dx9-batman-fix.md's corrections; #446 is unproven as a deadlock.
 
 ### 5.4 Fixed-function D3D9 pipeline gaps (#383)
 Imperial Glory: ~447 `SetTextureStageState` per draw, vs_1_1 only; menu artwork renders, button/text
@@ -251,7 +254,7 @@ Steam Input and fail without `SDL3.dll` (`c000007b`, #192), and L.A. Noire's lau
 | Where | Key | Value | Why |
 |---|---|---|---|
 | global | `d3d9` | *(omit)* or `emulated` | default is the only route with frames |
-| global | `env.MADEIRA_NO_GL` | `1` | 32-bit games today; avoids §5.1. Remove once the build is patched |
+| global | `env.MADEIRA_NO_GL` | `1` | D3D9 titles: `d3d9-emulated` needs no GL; GL only reaches ddraw/wined3d, whose failure UE3 survives. Remove only to test the patched 32-bit GL thunks on their own |
 | global | `env.MADEIRA_EC_HOOK_TRACE` | `0` | standard list |
 | global | `pool` | `512` | Portal 2's tested value |
 | global | `swap-mb` / `vram-mb` | `3072` / `1536` | keep DX9 texture churn under the kill line |

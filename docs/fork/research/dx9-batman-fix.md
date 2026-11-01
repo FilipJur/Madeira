@@ -5,6 +5,27 @@ callers. Evidence: `/tmp/g2/dev/bm.txt` (GL enabled → the *game* dies at load)
 `main5.txt`/`main6.txt` (`MADEIRA_NO_GL=1` → the *launcher* dies later, same
 address in both).
 
+> **Corrections (lead re-check, 2026-11-01).**
+> - The process that dies in `main5`/`main6`/`prev7` is the **game**, not the launcher:
+>   "Steam starts" had swapped `BmLauncher.exe` for a copy of `ShippingPC-BmGame.exe`
+>   (`[dock-start-program] … unchanged` = copy already in place, `DockStartProgram.swift:64-65`).
+>   It dies after `d3d9-emulated.dll` and `ddraw.dll` load and before any `CreateDevice`.
+> - `d3d9-emulated.dll` is DXMT's i386 frontend on Metal; it does not use wined3d or GL.
+>   The GL failure at `main6.txt:11990` comes from `ddraw.dll` → `wined3d.dll` (UE3's
+>   DirectDraw VRAM query), which the game survives. §4.1 and §4.2 are wrong on this.
+> - Do **not** set `d3d9 = native` (§5(a)2): it crashes 32-bit titles at `RIP=0` right
+>   after `CreateDevice` (upstream #192, Portal 2). Leave `d3d9` unset (emulated).
+> - Keep `env.MADEIRA_NO_GL = 1` for Batman (§5(a)1 reversed): with it the game gets past
+>   the ddraw/wined3d step; without it the first 32-bit run of the patched GL thunks on
+>   device is added to the same test. Remove it only to test GL on its own.
+> - The Dock's `detach-wait: … running=1` is `wine_process_is_running()` (the whole
+>   session, `ContentView.swift:3386`): it stayed `running=1` for 158 s after this game
+>   exited with `0x1f` (`prev7.txt:12794,14014`). Upstream #446's Arkham City "deadlock"
+>   (0 `CreateDevice`, `running=1`, ~150 s) fits a masked crash like this one as well as a
+>   hang. Its `NEVER SET BY ANYONE` lines also appear here (24 in `prev7.txt`), all on the
+>   64-bit session's threads (TEB `0x71ff…`); the game's own parked threads report
+>   `no server thread` after its exit (`prev7.txt:13152-13162`). They do not show a game hang.
+
 ## 0. Ranked findings
 
 | # | Finding | Impact | Fix |
