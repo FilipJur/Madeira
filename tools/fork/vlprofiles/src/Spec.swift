@@ -171,7 +171,6 @@ struct BuiltProfile {
     var profile: OSCProfile
     var states: [OnScreenButtonState]
     var geometry: [WidgetGeometry]
-    var notes: [String]
 }
 
 func buildProfile(_ spec: ProfileSpec, tables: CommandTables) throws -> BuiltProfile {
@@ -192,7 +191,6 @@ func buildProfile(_ spec: ProfileSpec, tables: CommandTables) throws -> BuiltPro
 
     var states: [OnScreenButtonState] = []
     var geo: [WidgetGeometry] = []
-    var notes: [String] = []
     var childrenOf: [Int: Set<Int>] = [:]
 
     for (i, w) in spec.widgets.enumerated() {
@@ -200,7 +198,6 @@ func buildProfile(_ spec: ProfileSpec, tables: CommandTables) throws -> BuiltPro
         let tokens = try tables.validate(cmd: w.cmd)
         let isPad = tables.touchPads.contains(tokens[0])
         let isFolder = tokens[0] == "FOLDER" || tokens[0] == "LABELEDFOLDER"
-        let isMotion = tokens.contains { tables.motion.contains($0) }
 
         var shape = w.shape
         if shape.isEmpty { shape = isPad ? "largeSquare" : "round" }
@@ -255,7 +252,7 @@ func buildProfile(_ spec: ProfileSpec, tables: CommandTables) throws -> BuiltPro
     for (seq, kids) in childrenOf {
         states[seq - 1].sequenceSet = Set(kids.map { NSNumber(value: $0) })
     }
-    return BuiltProfile(spec: spec, profile: profile, states: states, geometry: geo, notes: notes)
+    return BuiltProfile(spec: spec, profile: profile, states: states, geometry: geo)
 }
 
 // MARK: - Layout checks (sizes, safe area, overlaps)

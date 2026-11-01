@@ -129,7 +129,7 @@ func buildDerived(_ d: DerivedSpec, templates: [DecodedProfile], tables: Command
                                   primary: edited.contains(s.sequence), waiver: nil))
     }
     let spec = ProfileSpec(file: d.file, name: d.name, comment: d.comment, profileProps: d.profileProps, widgets: [])
-    return BuiltProfile(spec: spec, profile: profile, states: states, geometry: geo, notes: [])
+    return BuiltProfile(spec: spec, profile: profile, states: states, geometry: geo)
 }
 
 /// The template's own layout ignores the generator's safe-area and size rules, and its touchpads overlap
