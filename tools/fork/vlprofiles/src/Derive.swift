@@ -138,7 +138,7 @@ func buildDerived(_ d: DerivedSpec, templates: [DecodedProfile], tables: Command
     let seqIndex = Dictionary(uniqueKeysWithValues: states.enumerated().map { ($1.sequence, $0) })
     var geo: [WidgetGeometry] = []
     for (i, s) in states.enumerated() {
-        let tok = s.name.split(separator: "-").first.map(String.init) ?? s.name
+        let tok = (try? tables.validate(cmd: s.name))?.first ?? s.name
         geo.append(WidgetGeometry(cx: Double(s.position.x) * refWidth, cy: Double(s.position.y) * refHeight,
                                   w: ptFromFactor(s.widthFactor), h: ptFromFactor(s.heightFactor),
                                   round: s.widgetShape == "round", isPad: tables.touchPads.contains(tok), backdrop: false,

@@ -111,6 +111,11 @@ import ObjectiveC.runtime
     @objc public var touchPadString: String = ""
     // super combo key string set
     @objc public var comboButtonStrings: [String] = []
+    /// Fork: "RT/RT-OSCY" -- the part after "/" is pressed instead of the normal combo when a
+    /// button is touched again within QUICK_TAP_TIME_INTERVAL (a quick double tap).
+    @objc public var doubleTapComboStrings: [String] = []
+    /// The combo the current press sent, so the release lifts exactly those buttons.
+    private var pressedComboStrings: [String] = []
     private var comboKeyTimeIntervalMs: UInt32 = 0
     
     @objc public var temporarilyStoredHidden: Bool = false
@@ -478,10 +483,16 @@ import ObjectiveC.runtime
 
         self.cmdString = cmdString
         self.touchPadString = ""
+        // Fork: everything after the first "/" is the double-tap combo; the rest parses as before.
+        var primaryCmd = cmdString
+        if let slash = cmdString.firstIndex(of: "/") {
+            primaryCmd = String(cmdString[..<slash])
+            self.doubleTapComboStrings = CommandManager.shared.extractCmdStrings(from: String(cmdString[cmdString.index(after: slash)...])) ?? []
+        }
         
-        if !self.cmdString.contains("+"){
+        if !primaryCmd.contains("+"){
             // 安全解包并处理 `comboKeyStrings`
-            if let comboStrings = CommandManager.shared.extractCmdStrings(from: self.cmdString) {
+            if let comboStrings = CommandManager.shared.extractCmdStrings(from: primaryCmd) {
                 
                 if CommandManager.touchPadCmds.contains(comboStrings.first ?? "") {self.widgetType = WidgetTypeEnum.touchPad}
                 else {self.widgetType = WidgetTypeEnum.button}
@@ -494,7 +505,7 @@ import ObjectiveC.runtime
                 self.functionalButtonString = Set(self.comboButtonStrings).intersection(Set(CommandManager.functionalButtonCmds)).first ?? ""
                 self.motionControlButtonString = Set(self.comboButtonStrings).intersection(Set(CommandManager.motionControlButtonCmds)).first ?? ""
 
-                switch self.cmdString {
+                switch primaryCmd {
                 case "LSPAD", "LSVPAD", "LSWHEEL":
                     self.comboButtonStrings = ["OSCL3"]
                 case "RSPAD", "RSVPAD", "RSWHEEL":
@@ -2009,7 +2020,11 @@ import ObjectiveC.runtime
 
         if !OnScreenWidgetView.editMode, !self.functionalButtonString.isEmpty {self.handleFunctionalButtonDown()}
                         
-        if !OnScreenWidgetView.editMode {self.sendComboButtonsDownEvent(comboStrings: self.comboButtonStrings)}
+        if !OnScreenWidgetView.editMode {
+            self.pressedComboStrings = self.quickDoubleTapDetected && !self.doubleTapComboStrings.isEmpty
+                ? self.doubleTapComboStrings : self.comboButtonStrings
+            self.sendComboButtonsDownEvent(comboStrings: self.pressedComboStrings)
+        }
         
         if !OnScreenWidgetView.editMode, !self.motionControlButtonString.isEmpty {self.handleMotionControlButtonDown()}
         
@@ -2043,8 +2058,9 @@ import ObjectiveC.runtime
     private func handleButtonUp(leaveNonSkillButtonAlone:Bool = false, event: UIEvent? = nil) {
         if !self.isUserInteractionEnabled {return}
         if !OnScreenWidgetView.editMode {
+            let pressed = self.pressedComboStrings.isEmpty ? self.comboButtonStrings : self.pressedComboStrings
             DispatchQueue.main.asyncAfter(deadline: .now() + (self.hasDisplacementBasedStickPad ? 0.02 : 0)) {
-                self.sendComboButtonsUpEvent(comboStrings: self.comboButtonStrings)
+                self.sendComboButtonsUpEvent(comboStrings: pressed)
             }
         }
         

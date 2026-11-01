@@ -63,8 +63,15 @@ struct CommandTables {
     }
 
     /// Grammar of CommandManager.extractCmdStrings (non-GUI branch): TOKEN(-TOKEN)*(-<n>MS)?.
+    /// Tokens of `cmd`'s primary part. The fork's "PRIMARY/DOUBLETAP" form (OnScreenWidgetView:
+    /// doubleTapComboStrings) validates both parts; callers get the primary part's tokens.
     func validate(cmd: String) throws -> [String] {
-        let parts = cmd.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
+        let halves = cmd.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false).map(String.init)
+        if halves.count == 2 {
+            guard !halves[1].contains("/") else { throw Fail("cmdString '\(cmd)': more than one '/'") }
+            _ = try validate(cmd: halves[1])
+        }
+        let parts = halves[0].split(separator: "-", omittingEmptySubsequences: false).map(String.init)
         guard !parts.isEmpty, !parts.contains("") else { throw Fail("cmdString '\(cmd)': empty token") }
         let all = self.all
         for (i, p) in parts.enumerated() {
