@@ -2695,7 +2695,8 @@ struct ContentView: View {
         /* ml2100: XInput (default) or the HID controller; before the wineserver starts. */
         GamepadInput.shared.beginPadSession()
         /* ml1990: player 1 exists before the game enumerates XInput. */
-        GamepadInput.shared.reserveSessionSlot(touchControls: TouchControlsModel.shared.offersControllerInput)
+        /* VLTouch: the widgets feed player 1 too, and LibraryModel.begin has already resolved the switch. */
+        GamepadInput.shared.reserveSessionSlot(touchControls: TouchControlsModel.shared.offersControllerInput || VLTouchSwitch.active)
         if MadeiraConfig.present {
             let cfg = MadeiraConfig.all().sorted { $0.key < $1.key }
             logStore.log("madeira.cfg: " + (cfg.isEmpty ? "(empty)" : cfg.map { "\($0.key)=\($0.value)" }.joined(separator: " ")))
