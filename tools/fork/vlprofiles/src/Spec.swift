@@ -207,9 +207,6 @@ func buildProfile(_ spec: ProfileSpec, tables: CommandTables) throws -> BuiltPro
         guard shapeNames.contains(shape) else { throw Fail("\(ctx): shape '\(shape)' invalid") }
         if isPad && shape != "largeSquare" { throw Fail("\(ctx): touchpads are always largeSquare in the app; set shape 'largeSquare' or omit") }
         if !isPad && shape == "largeSquare" { throw Fail("\(ctx): only touchpads use largeSquare") }
-        if isMotion && w.props["buttonMode"] != nil && (w.props["buttonMode"] as? String) != "tapToToggle" {
-            notes.append("\(ctx): motion widget buttonMode overridden; the app forces tapToToggle at init")
-        }
 
         let s = VLNewDefaultButtonState() as! OnScreenButtonState
         s.name = w.cmd

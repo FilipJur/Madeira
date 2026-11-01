@@ -1,9 +1,10 @@
 import Foundation
 import CryptoKit
 
-// vlprofiles --repo <repo root> --specs <dir> --out <file>
+// vlprofiles --repo <repo root> --specs <dir> --out <file> [--derived <dir> --derived-out <file>]
 // Builds every spec into one VoidLink profile export (VLPR container, same bytes the app's Export
 // writes), then decodes it again through the app's import path and compares every property.
+// --derived: profiles copied from a bundled template and edited (Derive.swift), written to their own file.
 
 func arg(_ name: String) -> String? {
     guard let i = CommandLine.arguments.firstIndex(of: name), i + 1 < CommandLine.arguments.count else { return nil }
@@ -36,6 +37,28 @@ func run() throws {
         throw Fail("\(errors.count) layout error(s)")
     }
 
+    try writeAndVerify(built, out: out, tables: tables)
+
+    if let dDir = arg("--derived") {
+        guard let dOut = arg("--derived-out") else { throw Fail("--derived needs --derived-out <file>") }
+        let templates = try decodeExport(try Data(contentsOf: URL(fileURLWithPath: repo + "/app/Madeira/VLTouch/Model/widgetTemplatesIPhone.bin")))
+        let derived = try loadDerived(dir: dDir).map { try buildDerived($0, templates: templates, tables: tables) }
+        let dErrors = derived.flatMap { checkDerived($0) }
+        if !dErrors.isEmpty {
+            for e in dErrors { print("ERROR: \(e)") }
+            throw Fail("\(dErrors.count) derived layout error(s)")
+        }
+        let allNames = (built + derived).map { $0.spec.name }
+        if Set(allNames).count != allNames.count { throw Fail("duplicate profile names: \(allNames)") }
+        try writeAndVerify(derived, out: dOut, tables: tables)
+    }
+    try checkParity(repo: repo)
+    try checkBundledTemplate(repo: repo, tables: tables)
+    print("ALL CHECKS PASSED")
+}
+
+/// Encodes `built` to `out`, decodes the file through the app's import path and compares every property.
+func writeAndVerify(_ built: [BuiltProfile], out: String, tables: CommandTables) throws {
     // Expected values, taken before encoding.
     let expected = built.map { b in (snapshot(b.profile), b.states.map { snapshot($0) }) }
     let data = try encodeProfiles(built)
@@ -67,9 +90,6 @@ func run() throws {
     }
     print("round-trip OK: \(decoded.count) profiles, \(decoded.reduce(0) { $0 + $1.states.count }) widgets, all properties equal")
     try checkTokens(decoded, tables: tables)
-    try checkParity(repo: repo)
-    try checkBundledTemplate(repo: repo, tables: tables)
-    print("ALL CHECKS PASSED")
 }
 
 do { try run() } catch {

@@ -148,7 +148,7 @@ Profile-level fields (`PROF.h:44-62`, encoded `PROF.m:37-55`, defaults `PROF.m:1
 
 Widget-level:
 
-- **`GYRO`** on a *button* starts gyro on press and stops it on lift; `init` **forces `buttonMode = tapToToggle`** on any widget carrying a motion token (`OSWV:568-570`), so out of the box it is a latch. The editor's mode selector can change it back to `regular`/`slideAndHold` for true hold-to-gyro (`OSWV:661`, `3632-3648`). Two GYRO buttons share one starter; releasing a non-starter re-starts with the starter's factors (`OSWV:3225-3244`).
+- **`GYRO`** on a *button* starts gyro on press and stops it on lift. `init` sets `buttonMode = tapToToggle` on any widget carrying a motion token (`OSWV:568-570`), but the session then applies the saved `buttonMode` (`Host/VLTouchLayer.swift:257`), so a profile that stores `regular` (2) gets true hold-to-gyro; only a freshly created widget starts as a latch. Two GYRO buttons share one starter; releasing a non-starter re-starts with the starter's factors (`OSWV:3225-3244`).
 - **`GYROPAUSE`** stops gyro on press and restarts on lift — the "ratchet" gesture (`OSWV:3212-3215`, `3246-3250`). Ratcheting is the standard way to recentre a gyro aim ([Steam gyro setup](https://steamgamer.com/articles/controller/steam-controller-gyro-grip-sense-setup-guide/), [rewasd](https://www.rewasd.com/blog/post/how-to-use-gyro-controls-on-pc)).
 - **`ACCEL`** and **`MOTION`** exist as tokens but both handlers are empty (`OSWV:3216-3219`, `3250-3253`); the port's `LiSendControllerMotionEvent` is a no-op anyway (TOUCH-PORT.md sink table).
 - **`yawFactor`/`pitchFactor`/`rollFactor`** exist only on `GYRO` buttons, and only for the axes the profile actually maps (`OSWV:668-677`).

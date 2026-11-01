@@ -1,0 +1,28 @@
+{
+  "name": "[x] Gamepad",
+  "base": "=vGamepad1",
+  "comment": "VoidLink's =vGamepad1 kept as is except: hold-to-gyro on RT and A (gyro adds to the right stick while held), face buttons, bumpers and triggers 60 -> 76 pt, right-stick swipe pad ~1.8x faster, the inert GYRO-RSVPAD (a GYRO token on a pad does nothing) turned into a second camera pad, PUSHTOTALK (voice chat, no Madeira sink) removed. Positions moved only where the larger buttons would overlap.",
+  "profile": {
+    "mapGyroTo": "stick",
+    "yawPitchToRightStick": true
+  },
+  "remove": ["PUSHTOTALK"],
+  "edits": [
+    { "match": "RT", "cmd": "GYRO-RT", "label": "RT", "pos": [0.939, 0.1272], "sizePt": [76, 76],
+      "props": { "buttonMode": "regular", "yawFactor": 0.67, "pitchFactor": 0.67 } },
+    { "match": "OSCA", "cmd": "GYRO-OSCA", "label": "A", "pos": [0.8779, 0.8092], "sizePt": [76, 76],
+      "props": { "buttonMode": "regular", "yawFactor": 0.67, "pitchFactor": 0.67 } },
+    { "match": "OSCY", "pos": [0.8779, 0.5242], "sizePt": [76, 76] },
+    { "match": "OSCX", "pos": [0.8122, 0.6667], "sizePt": [76, 76] },
+    { "match": "OSCB", "pos": [0.9437, 0.6667], "sizePt": [76, 76] },
+    { "match": "RB", "pos": [0.939, 0.3257], "sizePt": [76, 76] },
+    { "match": "LT", "pos": [0.0704, 0.3003], "sizePt": [76, 76] },
+    { "match": "LB", "pos": [0.0704, 0.5089], "sizePt": [76, 76] },
+    { "match": "DPAD", "pos": [0.2089, 0.2265] },
+    { "match": "RB-LSPAD", "pos": [0.7277, 0.5344] },
+    { "match": "PICKPRFL", "pos": [0.716, 0.7939] },
+    { "match": "RSVPAD", "props": { "sensitivityFactorX": 12.0, "sensitivityFactorY": 12.0 } },
+    { "match": "GYRO-RSVPAD", "cmd": "RSVPAD", "label": "Rsvpad",
+      "props": { "sensitivityFactorX": 12.0, "sensitivityFactorY": 12.0, "mouseButtonAction": "hovering", "buttonMode": "slideToToggle" } }
+  ]
+}

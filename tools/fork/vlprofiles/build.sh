@@ -4,7 +4,8 @@
 #     and ProfileFileContainer.swift straight from the app tree (nothing copied),
 #   - plus a UIKit shim (shim/) and the tool sources (src/),
 #   - reads specs/*.json and writes dist/vltouch-profiles/fork-presets.bin,
-#   - then decodes that file through the app's import path and verifies it.
+#   - reads specs/derived/*.json (bundled templates, edited) and writes dist/vltouch-profiles/fork-derived.bin,
+#   - then decodes both files through the app's import path and verifies them.
 # macOS only; no Xcode project, no signing, no device.
 set -euo pipefail
 
@@ -12,6 +13,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../../.." && pwd)"
 BUILD="${VLPROFILES_BUILD:-/tmp/vlprofiles-build}"
 OUT="${VLPROFILES_OUT:-$REPO/dist/vltouch-profiles/fork-presets.bin}"
+DERIVED_OUT="${VLPROFILES_DERIVED_OUT:-$REPO/dist/vltouch-profiles/fork-derived.bin}"
 MODEL="$REPO/app/Madeira/VLTouch/Model"
 
 mkdir -p "$BUILD"
@@ -28,4 +30,4 @@ swiftc -O -swift-version 5 -sdk "$SDK" -import-objc-header "$HERE/shim/Bridge.h"
   "$BUILD/OSCProfile.o" "$BUILD/OnScreenButtonState.o" "$BUILD/VLCoderShim.o" \
   -o "$BUILD/vlprofiles"
 
-"$BUILD/vlprofiles" --repo "$REPO" --specs "$HERE/specs" --out "$OUT" "$@"
+"$BUILD/vlprofiles" --repo "$REPO" --specs "$HERE/specs" --out "$OUT" --derived "$HERE/specs/derived" --derived-out "$DERIVED_OUT" "$@"
