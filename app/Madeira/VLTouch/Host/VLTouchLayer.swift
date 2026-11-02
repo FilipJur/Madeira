@@ -34,6 +34,13 @@ struct VLTouchLayer: UIViewRepresentable {
 
     /// The editor or picker closed: build the widgets again from the selected profile.
     static func resume() { VLTouchContainer.current?.resume() }
+
+    /// Rebuild and resume the widgets when the app returns to the foreground.
+    /// The layer's UIView survives the background round-trip, so nothing re-runs
+    /// the normal rebuild path (no init, no layout change, no modal close): without
+    /// this the widgets keep their suspended state and the pad stays silent.
+    /// The container skips when it is live, ended, or has no bounds.
+    static func resumeFromBackground() { VLTouchContainer.current?.resumeFromBackground() }
 }
 
 final class VLTouchContainer: UIView {
@@ -124,6 +131,15 @@ final class VLTouchContainer: UIView {
         clearWidgets()
         suspended = true
         builtSize = .zero
+    }
+
+    /// Rebuild and resume the widgets after a background round-trip. Skips when the
+    /// container is live, when it no longer owns the shared widget state (a newer
+    /// container does, or the session ended while backgrounded), or when it has no
+    /// bounds for `rebuild` to lay out against.
+    func resumeFromBackground() {
+        guard suspended, VLTouchContainer.current === self, bounds.width > 0, bounds.height > 0 else { return }
+        resume()
     }
 
     func resume() {

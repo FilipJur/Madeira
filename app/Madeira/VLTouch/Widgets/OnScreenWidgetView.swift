@@ -1671,17 +1671,18 @@ import ObjectiveC.runtime
         
         CATransaction.commit()
         
+        // Publish on this thread, in touch order. The async hop this replaces could run
+        // a queued move AFTER touchesEnded had already zeroed the stick
+        // (clearLeftStickTouchPadFlag), which left the character walking with no finger
+        // down until the next touch. GamepadInput.touch hops to its own serial queue,
+        // so this does not block the main thread.
         switch self.touchPadString {
         case "LSWHEEL":
-            DispatchQueue.global(qos: .userInteractive).async {
-                self.weightedDeltaX = 1
-                self.sendLeftStickTouchPadEvent(weightedTouchX: self.offsetX * self.sensitivityFactorX, weightedTouchY: self.offsetY * self.sensitivityFactorY, circulate: true)
-            }
+            self.weightedDeltaX = 1
+            self.sendLeftStickTouchPadEvent(weightedTouchX: self.offsetX * self.sensitivityFactorX, weightedTouchY: self.offsetY * self.sensitivityFactorY, circulate: true)
         case "RSWHEEL":
-            DispatchQueue.global(qos: .userInteractive).async {
-                self.weightedDeltaX = 1
-                self.sendRightStickTouchPadEvent(weightedTouchX: self.offsetX * self.sensitivityFactorX, weightedTouchY: self.offsetY * self.sensitivityFactorY, circulate: true)
-            }
+            self.weightedDeltaX = 1
+            self.sendRightStickTouchPadEvent(weightedTouchX: self.offsetX * self.sensitivityFactorX, weightedTouchY: self.offsetY * self.sensitivityFactorY, circulate: true)
         default:
             break
         }
@@ -3500,9 +3501,13 @@ import ObjectiveC.runtime
         if !OnScreenWidgetView.editMode && !self.touchPadString.isEmpty {
             switch self.touchPadString{
             case "LSWHEEL":
+                // A release publishes 0 from clearLeftStickTouchPadFlag; zero the source
+                // too, so nothing can republish the last deflection afterwards.
+                self.offsetX = 0; self.offsetY = 0
                 self.clearLeftStickTouchPadFlag()
                 self.setHiddenForStickWheelLayer(hidden: true)
             case "RSWHEEL":
+                self.offsetX = 0; self.offsetY = 0
                 self.clearRightStickTouchPadFlag()
                 self.setHiddenForStickWheelLayer(hidden: true)
             case "LSPAD":

@@ -64,12 +64,23 @@ import UIKit
         savedProfile = nil
     }
 
-    /// Menus and the app leaving the foreground end every touch the widgets hold.
+    /// The widgets UIView survives the background round-trip, so the normal rebuild paths
+    /// never re-run: suspend here so it releases its state, resume on return so a touch the
+    /// user left down cannot keep the pad or a key held, and dead widgets cannot eat touches.
     private static func installResignObserver() {
         guard resignObserver == nil else { return }
-        resignObserver = NotificationCenter.default.addObserver(
+        let center = NotificationCenter.default
+        resignObserver = center.addObserver(
             forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { _ in
-            MainActor.assumeIsolated { if active { VLSink.releaseAll() } }
+            MainActor.assumeIsolated {
+                guard active else { return }
+                VLSink.releaseAll()
+                VLTouchLayer.suspend()
+            }
+        }
+        _ = center.addObserver(
+            forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { if active { VLTouchLayer.resumeFromBackground() } }
         }
     }
 
