@@ -3679,7 +3679,8 @@ struct ContentView: View {
                 logStore.log("[madeira-dock] starting the host for app \(game.id); Valve's client authenticates and authorizes the launch")
             }
             MadeiraDockModel.shared.watchReport()
-            waitForClientCloudCache(appID: game.id)
+            /* The per-app cloud init runs only after the game starts, so nothing here can wait
+             * for it; a bounded wait just slows every launch. Removed (G15's wait), helper kept. */
             if inLibrary {
                 if let profile { library.begin(profile, dock: game) }
                 else { library.begin(.dockSession(title: game.name, width: width, height: height), remember: false, dock: game) }
