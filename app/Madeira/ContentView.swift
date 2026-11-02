@@ -2668,24 +2668,51 @@ struct ContentView: View {
     /// it logs as "[AppID <id>] Init cache request complete". A game started before that line
     /// sees an empty file list: Divinity: Original Sin EE then lists no saved profiles even
     /// though they are on disk (its profile list comes from that file list), and DREDGE asked
-    /// XInput in the same window. Wait for the line, bounded, before Wine starts. Runs the
-    /// run loop while waiting so the launch screen keeps drawing.
-    private func waitForClientCloudCache(appID: Int, seconds: TimeInterval = 12) {
+    /// XInput in the same window. Wait for the line, bounded, before Wine starts. A cold
+    /// client logs in first and takes ~20 s (measured 04:14:51 → 04:15:11), so the bound is
+    /// generous; the usual case is one to two seconds. Runs the run loop while waiting so the
+    /// launch screen keeps drawing.
+    private func waitForClientCloudCache(appID: Int, seconds: TimeInterval = 40) {
         let log = MadeiraDock.clientRoot.appendingPathComponent("logs/cloud_log.txt")
-        let fm = FileManager.default
-        let start = (try? fm.attributesOfItem(atPath: log.path)[.size] as? UInt64) ?? 0
         let needle = "[AppID \(appID)] Init cache request complete"
-        let deadline = Date().addingTimeInterval(seconds)
+        // The client writes its per-app cache here once the init completes; the mtime is the
+        // same event as the log line, and survives log rotation.
+        let cache = MadeiraDock.drive
+            .appendingPathComponent("Program Files (x86)/Steam/userdata")
+        let started = Date()
+        let deadline = started.addingTimeInterval(seconds)
+        let sizeAtStart = (try? FileManager.default.attributesOfItem(atPath: log.path)[.size] as? UInt64) ?? 0
         var announced = false
+        func cacheWritten() -> Bool {
+            guard let users = try? FileManager.default.contentsOfDirectory(atPath: cache.path) else { return false }
+            for user in users {
+                let file = cache.appendingPathComponent("\(user)/\(appID)/remotecache.vdf")
+                if let date = try? FileManager.default.attributesOfItem(atPath: file.path)[.modificationDate] as? Date,
+                   date >= started { return true }
+            }
+            return false
+        }
+        /// The needle, but only in bytes written after we started waiting: the log is
+        /// appended across runs, so an older line must not end the wait.
+        func lineAppeared() -> Bool {
+            guard let handle = try? FileHandle(forReadingFrom: log) else { return false }
+            defer { try? handle.close() }
+            let size = (try? handle.seekToEnd()) ?? 0
+            let from = size < sizeAtStart ? 0 : sizeAtStart      // the client may rotate it
+            try? handle.seek(toOffset: from)
+            guard let data = try? handle.readToEnd() else { return false }
+            return String(decoding: data, as: UTF8.self).contains(needle)
+        }
         while Date() < deadline {
-            if let handle = try? FileHandle(forReadingFrom: log) {
-                defer { try? handle.close() }
-                try? handle.seek(toOffset: start ?? 0)
-                if let data = try? handle.readToEnd(),
-                   String(decoding: data, as: UTF8.self).contains(needle) {
-                    if announced { logStore.log("[dock] client cloud cache ready for app \(appID)") }
-                    return
+            if lineAppeared() {
+                if announced {
+                    logStore.log("[dock] client cloud cache ready for app \(appID) after \(String(format: "%.1f", Date().timeIntervalSince(started))) s")
                 }
+                return
+            }
+            if cacheWritten() {
+                if announced { logStore.log("[dock] client cloud cache written for app \(appID)") }
+                return
             }
             if !announced {
                 announced = true
