@@ -2664,6 +2664,40 @@ struct ContentView: View {
         if !on.isEmpty { LogStore.shared.log("[bcd] game switches: \(on.joined(separator: " "))") }
     }
 
+    /// `prelaunch-reset` in a game's own config: paths under the Windows user's Documents
+    /// moved aside before the session starts, so the game rebuilds them.
+    /// Divinity: Original Sin EE stops listing its saved profiles once its
+    /// `PlayerProfiles\playerprofiles.lsb` index exists at launch (it loads the profile and
+    /// still shows "create a profile"); with the index gone it rescans the folder and lists
+    /// them. Semicolon-separated, relative to Documents; each is renamed to
+    /// `.<name>.prelaunch-bak`, so nothing is lost.
+    private func resetBeforeLaunch(_ entry: LibraryEntry?) {
+        guard let entry else { return }
+        let values = GameProfile(windowsPath: entry.windowsPath).values
+        guard let list = values["prelaunch-reset"], !list.isEmpty else { return }
+        guard let user = SteamCloudPaths.profileName(prefix: MadeiraDock.prefix) else {
+            logStore.log("[prelaunch] no Windows user folder found; prelaunch-reset skipped", level: .error)
+            return
+        }
+        let documents = MadeiraDock.drive.appendingPathComponent("users/\(user)/Documents", isDirectory: true)
+        let fm = FileManager.default
+        for raw in list.split(separator: ";") {
+            let relative = raw.trimmingCharacters(in: .whitespaces)
+            guard !relative.isEmpty else { continue }
+            let url = documents.appendingPathComponent(relative)
+            guard fm.fileExists(atPath: url.path) else { continue }
+            let aside = url.deletingLastPathComponent()
+                .appendingPathComponent(".\(url.lastPathComponent).prelaunch-bak")
+            try? fm.removeItem(at: aside)
+            do {
+                try fm.moveItem(at: url, to: aside)
+                logStore.log("[prelaunch] \(relative): moved aside, the game rebuilds it")
+            } catch {
+                logStore.log("[prelaunch] \(relative): could not move aside: \(error.localizedDescription)", level: .error)
+            }
+        }
+    }
+
     /// madeira-bcd: the Desktop entry's own file (Game details writes every entry's
     /// options to GameProfiles.swift files); BCDLaunch.applyLibrary leaves the
     /// Desktop without one, so it is exported here, before the session starts.
@@ -2698,8 +2732,14 @@ struct ContentView: View {
         /* VLTouch: the widgets feed player 1 too, and LibraryModel.begin has already resolved the switch.
          * The game's own file is read here: its env lines are exported later (applyEnvironment). */
         let gameEarlySlot = profile.map { GameProfile(windowsPath: $0.windowsPath).values["env.MADEIRA_PAD_EARLY_SLOT"] == "1" } ?? false
-        GamepadInput.shared.reserveSessionSlot(touchControls: TouchControlsModel.shared.offersControllerInput || VLTouchSwitch.active,
-                                               gameOptIn: gameEarlySlot)
+        // The overlay is often not up yet when the game enumerates XInput (Valve games ask in
+        // their first seconds), so the session's own Touch controls setting decides, not the
+        // live overlay state.
+        let sessionWantsTouch = TouchControlsModel.shared.offersControllerInput
+            || VLTouchSwitch.active
+            || (profile?.touchControls ?? false)
+        GamepadInput.shared.reserveSessionSlot(touchControls: sessionWantsTouch, gameOptIn: gameEarlySlot)
+        resetBeforeLaunch(profile)
         if MadeiraConfig.present {
             let cfg = MadeiraConfig.all().sorted { $0.key < $1.key }
             logStore.log("madeira.cfg: " + (cfg.isEmpty ? "(empty)" : cfg.map { "\($0.key)=\($0.value)" }.joined(separator: " ")))

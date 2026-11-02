@@ -49,9 +49,14 @@ final class GamepadInput: @unchecked Sendable {
     /// controller is in use. That is why it is opt-in: without the switch,
     /// slot 0 connects only when a real source appears, as before.
     @MainActor func reserveSessionSlot(touchControls: Bool, gameOptIn: Bool = false) {
-        guard Self.enabled, gameOptIn || Self.optIn("MADEIRA_PAD_EARLY_SLOT") else { return }
+        guard Self.enabled else { return }
         let touch = touchControls && Self.touchEnabled
         let paired = !GCController.controllers().isEmpty
+        // MADEIRA_PAD_EARLY_SLOT=0 keeps the old behaviour; anything else reserves for a
+        // session that will have touch controls, whatever the overlay is doing right now.
+        let raw = MadeiraConfig.get("env.MADEIRA_PAD_EARLY_SLOT")
+            ?? ProcessInfo.processInfo.environment["MADEIRA_PAD_EARLY_SLOT"]
+        guard raw != "0", gameOptIn || touch || Self.optIn("MADEIRA_PAD_EARLY_SLOT") else { return }
         guard touch || paired else { return }
         queue.async { [self] in touchState.reserved = true; sample() }
         LogStore.shared.log("[xinput] ml1990 slot=0 reserved for the session touch=\(touch ? 1 : 0) paired=\(paired ? 1 : 0)")
