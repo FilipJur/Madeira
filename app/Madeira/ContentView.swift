@@ -2664,6 +2664,38 @@ struct ContentView: View {
         if !on.isEmpty { LogStore.shared.log("[bcd] game switches: \(on.joined(separator: " "))") }
     }
 
+    /// The Steam client answers a game's cloud API only after its per-app cache init, which
+    /// it logs as "[AppID <id>] Init cache request complete". A game started before that line
+    /// sees an empty file list: Divinity: Original Sin EE then lists no saved profiles even
+    /// though they are on disk (its profile list comes from that file list), and DREDGE asked
+    /// XInput in the same window. Wait for the line, bounded, before Wine starts. Runs the
+    /// run loop while waiting so the launch screen keeps drawing.
+    private func waitForClientCloudCache(appID: Int, seconds: TimeInterval = 12) {
+        let log = MadeiraDock.clientRoot.appendingPathComponent("logs/cloud_log.txt")
+        let fm = FileManager.default
+        let start = (try? fm.attributesOfItem(atPath: log.path)[.size] as? UInt64) ?? 0
+        let needle = "[AppID \(appID)] Init cache request complete"
+        let deadline = Date().addingTimeInterval(seconds)
+        var announced = false
+        while Date() < deadline {
+            if let handle = try? FileHandle(forReadingFrom: log) {
+                defer { try? handle.close() }
+                try? handle.seek(toOffset: start ?? 0)
+                if let data = try? handle.readToEnd(),
+                   String(decoding: data, as: UTF8.self).contains(needle) {
+                    if announced { logStore.log("[dock] client cloud cache ready for app \(appID)") }
+                    return
+                }
+            }
+            if !announced {
+                announced = true
+                logStore.log("[dock] waiting for the client's cloud cache init (app \(appID))")
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        logStore.log("[dock] client cloud cache init not seen for app \(appID) after \(Int(seconds)) s; starting anyway", level: .error)
+    }
+
     /// `prelaunch-reset` in a game's own config: paths under the Windows user's Documents
     /// moved aside before the session starts, so the game rebuilds them.
     /// Divinity: Original Sin EE stops listing its saved profiles once its
@@ -2686,8 +2718,10 @@ struct ContentView: View {
             guard !relative.isEmpty else { continue }
             let url = documents.appendingPathComponent(relative)
             guard fm.fileExists(atPath: url.path) else { continue }
-            let aside = url.deletingLastPathComponent()
-                .appendingPathComponent(".\(url.lastPathComponent).prelaunch-bak")
+            // Outside the game's own folders: a hidden entry inside them (a dot-directory in
+            // PlayerProfiles, say) would still be enumerated by the game's own scan.
+            let aside = documents.appendingPathComponent(".prelaunch-aside").appendingPathComponent(relative)
+            try? fm.createDirectory(at: aside.deletingLastPathComponent(), withIntermediateDirectories: true)
             try? fm.removeItem(at: aside)
             do {
                 try fm.moveItem(at: url, to: aside)
@@ -3618,6 +3652,7 @@ struct ContentView: View {
                 logStore.log("[madeira-dock] starting the host for app \(game.id); Valve's client authenticates and authorizes the launch")
             }
             MadeiraDockModel.shared.watchReport()
+            waitForClientCloudCache(appID: game.id)
             if inLibrary {
                 if let profile { library.begin(profile, dock: game) }
                 else { library.begin(.dockSession(title: game.name, width: width, height: height), remember: false, dock: game) }
