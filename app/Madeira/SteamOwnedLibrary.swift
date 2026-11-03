@@ -1210,7 +1210,8 @@ final class SteamOwnedLibrary: ObservableObject {
             try FileManager.default.createDirectory(at: common, withIntermediateDirectories: true)
             SteamLog.event("[steam-depot] install app=\(appID) library=\(library)")
             let folder = try await downloader.install(info, steamApps: steamApps,
-                                                      ownedDepots: { [weak self] in try? await self?.fetcher.ownedDepotIDs() }) { [weak self] progress in
+                                                      ownedDepots: { [weak self] in try? await self?.fetcher.ownedDepotIDs() },
+                                                      ownedApps: { [weak self] in try? await self?.fetcher.ownedAppIDs() }) { [weak self] progress in
                 self?.downloads[appID]?.progress = progress
                 SteamDownloadBackground.shared.progress(progress)
             }

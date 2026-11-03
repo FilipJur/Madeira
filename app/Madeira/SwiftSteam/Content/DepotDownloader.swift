@@ -84,15 +84,19 @@ final class DepotDownloader {
     /// the calling task is cancelled; completed chunks stay journaled.
     func install(_ app: SteamAppInfo, steamApps: URL,
                  ownedDepots: @escaping () async -> Set<UInt32>? = { nil },
+                 ownedApps: @escaping () async -> Set<UInt32>? = { nil },
                  progress report: @escaping (SteamDownloadProgress) -> Void) async throws -> URL {
-        // The account's licensed depots decide which DLC depots are content this
-        // account owns (Dishonored's DLC, say). Asked once, before selection, so
-        // the plan and the install record list them like any other depot.
+        // The account's licenses decide which DLC depots are content this account
+        // owns (Dishonored's DLC, say): a depot names its DLC app in `dlcappid`, and
+        // the package `depotids` do not always name that depot, so both lists are
+        // asked for once, before selection, and logged.
         let owned = await ownedDepots()
-        let depots = app.installDepots(ownedDepots: owned)
+        let ownedAppsSet = await ownedApps()
+        let depots = app.installDepots(ownedDepots: owned, ownedApps: ownedAppsSet)
         guard !depots.isEmpty else { throw SteamError.depotNotFound(app.appID) }
         // Before the key requests, so a refused depot still has its selection logged.
-        SteamLog.event("[steam-depot] selection app=\(app.appID) build=\(app.buildID) language=\(app.depotLanguage)/\(app.gameLanguage) \(app.depotSelectionSummary(ownedDepots: owned))")
+        SteamLog.event("[steam-depot] licenses app=\(app.appID) ownedApps=\(ownedAppsSet?.count ?? -1) ownedDepots=\(owned?.count ?? -1) dlcApps=\(app.depots.compactMap { $0.dlcAppID }.map(String.init).joined(separator: ","))")
+        SteamLog.event("[steam-depot] selection app=\(app.appID) build=\(app.buildID) language=\(app.depotLanguage)/\(app.gameLanguage) \(app.depotSelectionSummary(ownedDepots: owned, ownedApps: ownedAppsSet))")
 
         let folderName = SteamInstallFiles.safeFolderName(app.installDir.isEmpty ? "app_\(app.appID)" : app.installDir)
         let installURL = steamApps.appendingPathComponent("common", isDirectory: true)

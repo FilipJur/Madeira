@@ -183,12 +183,17 @@ struct SteamAppInfo {
     /// `SteamLibraryFetcher.ownedDepotIDs`) contains them. Without that set they
     /// stay out, which is what a size estimate or an unknown account wants.
     func installDepots(os: String = "windows", arch: String = "64",
-                       language: String? = nil, ownedDepots: Set<UInt32>? = nil) -> [DepotInfo] {
+                       language: String? = nil, ownedDepots: Set<UInt32>? = nil,
+                       ownedApps: Set<UInt32>? = nil) -> [DepotInfo] {
         let language = language ?? depotLanguage
+        func owns(_ d: DepotInfo) -> Bool {
+            guard let dlc = d.dlcAppID else { return true }
+            if ownedApps?.contains(dlc) == true { return true }
+            return ownedDepots?.contains(d.depotID) == true
+        }
         func select(_ arch: String) -> [DepotInfo] {
             depots.filter { d in
-                d.supports(os: os) && !d.isSharedInstall &&
-                (d.dlcAppID == nil || ownedDepots?.contains(d.depotID) == true) &&
+                d.supports(os: os) && !d.isSharedInstall && owns(d) &&
                 d.publicManifestID != nil && !d.lowViolence &&
                 (d.osarch.isEmpty || d.osarch == arch) &&
                 (d.language.isEmpty || d.language.caseInsensitiveCompare(language) == .orderedSame)
@@ -206,9 +211,10 @@ struct SteamAppInfo {
     /// ("sel", or the first failing rule). IDs and flags only.
     func depotSelectionSummary(os: String = "windows", arch: String = "64",
                                language: String? = nil, ownedDepots: Set<UInt32>? = nil,
-                               limit: Int = 24) -> String {
+                               ownedApps: Set<UInt32>? = nil, limit: Int = 24) -> String {
         let language = language ?? depotLanguage
-        let chosen = Set(installDepots(os: os, arch: arch, language: language, ownedDepots: ownedDepots).map(\.depotID))
+        let chosen = Set(installDepots(os: os, arch: arch, language: language,
+                                       ownedDepots: ownedDepots, ownedApps: ownedApps).map(\.depotID))
         return depots.sorted { $0.depotID < $1.depotID }.prefix(limit).map { d in
             let why = selectionRule(d, chosen: chosen, os: os, language: language)
             let from = d.fromApp.map { "<\($0)" } ?? ""

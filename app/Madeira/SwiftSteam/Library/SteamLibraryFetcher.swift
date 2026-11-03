@@ -77,6 +77,33 @@ class SteamLibraryFetcher {
         return depots
     }
 
+    /// App IDs included in the account's licenses, from the package `appids`.
+    /// DLC ownership is an app question — a depot carries `dlcappid`, and the
+    /// package's `depotids` do not necessarily name that depot — so DLC depot
+    /// selection asks this. Cached per session, like `ownedDepotIDs`.
+    private var ownedAppCache: Set<UInt32>?
+    func ownedAppIDs() async throws -> Set<UInt32> {
+        if let cached = ownedAppCache { return cached }
+        try await session.ensureConnected()
+        let packageIDs = try await fetchLicenseList()
+        let tokens = try await fetchPICSAccessTokens(packageIDs: packageIDs)
+        var apps = Set<UInt32>()
+        for start in stride(from: 0, to: packageIDs.count, by: 50) {
+            var request = CMsgClientPICSProductInfoRequest()
+            request.packages = packageIDs[start..<min(start + 50, packageIDs.count)].map {
+                CMsgClientPICSProductInfoRequest.PackageInfo(packageid: $0, accessToken: tokens[$0] ?? 0)
+            }
+            let responses = try await session.sendAndWaitPICS(eMsg: .clientPICSProductInfoRequest,
+                                                              body: request.serialize(), timeout: 30)
+            for response in responses {
+                let pics = try CMsgClientPICSProductInfoResponse.deserialize(from: response.body)
+                for pkg in pics.packages { apps.formUnion(VDFParser.parsePackageAppIDs(from: pkg.buffer)) }
+            }
+        }
+        ownedAppCache = apps
+        return apps
+    }
+
     /// Fetches PICS info for a single app on demand: one token round trip and
     /// one product-info round trip, no license list. Connects the session if it
     /// sits idle-disconnected.
